@@ -1,0 +1,24 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+CommandAndControl
+{
+        type CnC;
+        functionObjectLibs ( "libCnC.so" );
+        executeCalls 0();
+        endCalls 0();
+        writeCalls 1("./timestepScript");
+        restartCalls 1("qsub batch_rerunSolver.sh");
+        maxClockTime 85800; //short  86400 s
+	//maxClockTime 345000; //medium 345600 s
+	//maxClockTime 604200; //long	604800 s
+	//maxClockTime 172200; //huge 172800 s
+        outputControl outputTime;
+}
+
+// ************************************************************************* //
