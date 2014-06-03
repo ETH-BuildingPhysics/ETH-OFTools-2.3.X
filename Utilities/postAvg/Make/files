@@ -1,0 +1,3 @@
+postAvg.C
+
+EXE = $(FOAM_APPBIN)/postAvg

@@ -1,0 +1,3 @@
+scalarCovariance.C
+
+EXE = $(FOAM_APPBIN)/scalarCovariance

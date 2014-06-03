@@ -1,0 +1,3 @@
+scalarFluxes.C
+
+EXE = $(FOAM_APPBIN)/scalarFluxes
