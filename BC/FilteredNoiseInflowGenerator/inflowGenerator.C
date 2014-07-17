@@ -656,13 +656,13 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
 
     for (int j=0; j<NLX2P1_x; j++)
     {
-        sumx += Foam::exp(-constant::mathematical::pi*fabs((j-NLX_x)/(2.0*NLX_x)))*Foam::exp(-constant::mathematical::pi*fabs((j-NLX_x)/(2.0*NLX_x)));
+        sumx += Foam::sqr(Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x))));
     }
     sumx = Foam::sqrt(sumx);
 
     for (int j=0; j<NLX2P1_x; j++)
     {
-        b_x[j] = Foam::exp(-constant::mathematical::pi*fabs((j-NLX_x)/(2.0*NLX_x)))/sumx;
+        b_x[j] = Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x)))/sumx;
     }
 }
 
@@ -770,20 +770,20 @@ void Foam::inflowGenerator::temporalCorr()
         label& NLX_w=NLxField_[celli].component(2);
 
         if (NLX_u>0)
-            uFluctTemporal[celli].component(vector::X) = uFluctTemporal_old[celli].component(vector::X) * Foam::exp(-constant::mathematical::pi/4.0/NLX_u) +
-                uFluctFiltered[celli].component(vector::X) * Foam::sqrt( 1.0 - Foam::exp(-constant::mathematical::pi/2.0/NLX_u) );
+            uFluctTemporal[celli].component(vector::X) = uFluctTemporal_old[celli].component(vector::X) * Foam::exp(-1.0/NLX_u) +
+                uFluctFiltered[celli].component(vector::X) * Foam::sqrt( 1.0 - Foam::exp(-2.0/NLX_u) );
         else
             uFluctTemporal[celli].component(vector::X) = 0.0;
 
         if (NLX_v>0)
-            uFluctTemporal[celli].component(vector::Y) = uFluctTemporal_old[celli].component(vector::Y) * Foam::exp(-constant::mathematical::pi/4.0/NLX_v) +
-                uFluctFiltered[celli].component(vector::Y) * Foam::sqrt( 1.0 - Foam::exp(-constant::mathematical::pi/2.0/NLX_v) );
+            uFluctTemporal[celli].component(vector::Y) = uFluctTemporal_old[celli].component(vector::Y) * Foam::exp(-1.0/NLX_v) +
+                uFluctFiltered[celli].component(vector::Y) * Foam::sqrt( 1.0 - Foam::exp(-2.0/NLX_v) );
         else
             uFluctTemporal[celli].component(vector::Y)=0.0;
 
         if (NLX_w>0)
-            uFluctTemporal[celli].component(vector::Z) = uFluctTemporal_old[celli].component(vector::Z) * Foam::exp(-constant::mathematical::pi/4.0/NLX_w) +
-                uFluctFiltered[celli].component(vector::Z) * Foam::sqrt( 1.0 - Foam::exp(-constant::mathematical::pi/2.0/NLX_w) );
+            uFluctTemporal[celli].component(vector::Z) = uFluctTemporal_old[celli].component(vector::Z) * Foam::exp(-1.0/NLX_w) +
+                uFluctFiltered[celli].component(vector::Z) * Foam::sqrt( 1.0 - Foam::exp(-2.0/NLX_w) );
         else
             uFluctTemporal[celli].component(vector::Z) = 0.0;
     }
