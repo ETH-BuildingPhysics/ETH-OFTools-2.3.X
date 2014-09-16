@@ -121,7 +121,8 @@ inflowGenerator
     uFluctTemporal_old(p.size(),pTraits<vector>::zero),
     uFluctTemporal(p.size(),pTraits<vector>::zero),
     uFluctFinal(p.size(),pTraits<vector>::zero),
-    origin_(dict.lookup("origin")),
+    //origin_(dict.lookup("origin")),
+    origin_(vector::zero),
     mapperVP_Ptr_(NULL),
     mapperIV_Ptr_(NULL),
     mapperIP_Ptr_(NULL),
@@ -141,12 +142,13 @@ inflowGenerator
 
     //number of points on virtual grid
 
+/*
     NZ_ = readLabel(dict.lookup("NZ"));
     NY_ = readLabel(dict.lookup("NY"));
 
     LZ_ = readScalar(dict.lookup("SizeZ"));
     LY_ = readScalar(dict.lookup("SizeY"));
-
+*/
 
 
     if (dict.found("uFluctTemporal") && !cleanRestart_)
@@ -241,8 +243,8 @@ void Foam::inflowGenerator::autoSizeGrid()
     scalar dx=Foam::sqrt(smallestFace);
     origin_.component(1)=origin_.component(1);
     origin_.component(2)=origin_.component(2);
-    LY_=LY_;
-    LZ_=LZ_;
+    //LY_=LY_;
+    //LZ_=LZ_;
 
     NY_=LY_/dx+1;
     NZ_=LZ_/dx+1;
@@ -250,6 +252,7 @@ void Foam::inflowGenerator::autoSizeGrid()
     dy_=dx;
     dz_=dx;
     Info << "Virtual grid with origin: " << origin_ << " and nr. of points Y:"<< NY_<<" Z: " << NZ_ << endl;
+    Info << "Y coordinate:"<< origin_.component(vector::Y)+NY_*dy_<<" Z coordinate: " << origin_.component(vector::Z)+NZ_*dz_ << endl;
     /*
     int numsf = 0;
 
@@ -266,6 +269,9 @@ void Foam::inflowGenerator::autoSizeGrid()
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 void Foam::inflowGenerator::initData()
 {
+    //set initial seed for rand() for each proc
+    srand((Pstream::myProcNo()+1)*time(NULL));
+
     //automatically size virtual grid
     autoSizeGrid();
 
@@ -605,8 +611,8 @@ void Foam::inflowGenerator::initData()
         get2DFilterCoeff_New(filterCoeff_yz_v_Proc[Pstream::myProcNo()][subI],NLyField_[I].component(1), NLzField_[I].component(1));
         get2DFilterCoeff_New(filterCoeff_yz_w_Proc[Pstream::myProcNo()][subI],NLyField_[I].component(2), NLzField_[I].component(2));
     }
-
-
+	
+    Info << filterCoeff_yz_u_Proc[Pstream::myProcNo()][10];
     //Info << "done calculating filter coefficients" << endl;
 }
 
@@ -656,13 +662,15 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
 
     for (int j=0; j<NLX2P1_x; j++)
     {
-        sumx += Foam::sqr(Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x))));
+        //sumx += Foam::sqr(Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x))));
+        sumx += Foam::exp(-4.0*j/NLX_x);
     }
     sumx = Foam::sqrt(sumx);
 
     for (int j=0; j<NLX2P1_x; j++)
     {
-        b_x[j] = Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x)))/sumx;
+        //b_x[j] = Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x)))/sumx;
+        b_x[j] = Foam::exp(-2.0*j/NLX_x)/sumx;
     }
 }
 
@@ -700,59 +708,71 @@ void Foam::inflowGenerator::spatialCorr()
 
     virtualFilteredFieldProc_[Pstream::myProcNo()]=SubField<vector>(virtualFilteredField_,size,start);
 
+    bool doSpatialCorr=true;
     //appy filter
     forAll(virtualFilteredFieldProc_[Pstream::myProcNo()],subI)
     {
-        int I = subI+start;
-        int i = yindices_[I];
-        int j = zindices_[I];
-
-        double sumTmp_u=0;
-        double sumTmp_v=0;
-        double sumTmp_w=0;
-
-        for (int ii=0;ii<(2*NLyField_[I].component(0)+1);ii++)
+        if(doSpatialCorr)
         {
-            int start_rnd=get1DIndex(i+NLyMax_u-NLyField_[I].component(0)+ii, j+NLzMax_u-NLzField_[I].component(0), (NZ_+2*NLzMax_u));
-            int size_rnd=2*NLzField_[I].component(0)+1;
-            int size_filt=2*NLzField_[I].component(0)+1;
-            int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(0)+1));
+            int I = subI+start;
+            int i = yindices_[I];
+            int j = zindices_[I];
 
-            SubField<scalar> rnd = SubField<scalar>(virtualRandomField_u_,size_rnd,start_rnd);
-            SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_u_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
+            double sumTmp_u=0;
+            double sumTmp_v=0;
+            double sumTmp_w=0;
 
-            sumTmp_u+=sumProd(rnd,filt);
+            for (int ii=0;ii<(2*NLyField_[I].component(0)+1);ii++)
+            {
+                int start_rnd=get1DIndex(i+NLyMax_u-NLyField_[I].component(0)+ii, j+NLzMax_u-NLzField_[I].component(0), (NZ_+2*NLzMax_u));
+                int size_rnd=2*NLzField_[I].component(0)+1;
+                int size_filt=2*NLzField_[I].component(0)+1;
+                int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(0)+1));
+
+                SubField<scalar> rnd = SubField<scalar>(virtualRandomField_u_,size_rnd,start_rnd);
+                SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_u_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
+
+                sumTmp_u+=sumProd(rnd,filt);
+                //sumTmp_u+=rnd[0];
+            }
+
+            for (int ii=0;ii<(2*NLyField_[I].component(1)+1);ii++)
+            {
+                int start_rnd=get1DIndex(i+NLyMax_v-NLyField_[I].component(1)+ii, j+NLzMax_v-NLzField_[I].component(1), (NZ_+2*NLzMax_v));
+                int size_rnd=2*NLzField_[I].component(1)+1;
+                int size_filt=2*NLzField_[I].component(1)+1;
+                int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(1)+1));
+
+                SubField<scalar> rnd = SubField<scalar>(virtualRandomField_v_,size_rnd,start_rnd);
+                SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_v_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
+
+                sumTmp_v+=sumProd(rnd,filt);
+                //sumTmp_v=virtualRandomField_v_[start_rnd];
+            }
+
+            for (int ii=0;ii<(2*NLyField_[I].component(2)+1);ii++)
+            {
+                int start_rnd=get1DIndex(i+NLyMax_w-NLyField_[I].component(2)+ii, j+NLzMax_w-NLzField_[I].component(2), (NZ_+2*NLzMax_v));
+                int size_rnd=2*NLzField_[I].component(2)+1;
+                int size_filt=2*NLzField_[I].component(2)+1;
+                int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(2)+1));
+
+                SubField<scalar> rnd = SubField<scalar>(virtualRandomField_w_,size_rnd,start_rnd);
+                SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_w_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
+
+                sumTmp_w+=sumProd(rnd,filt);
+            }
+
+            virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(0)=sumTmp_u;
+            virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(1)=sumTmp_v;
+            virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(2)=sumTmp_w;
         }
-
-        for (int ii=0;ii<(2*NLyField_[I].component(1)+1);ii++)
+        else
         {
-            int start_rnd=get1DIndex(i+NLyMax_v-NLyField_[I].component(1)+ii, j+NLzMax_v-NLzField_[I].component(1), (NZ_+2*NLzMax_v));
-            int size_rnd=2*NLzField_[I].component(1)+1;
-            int size_filt=2*NLzField_[I].component(1)+1;
-            int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(1)+1));
-
-            SubField<scalar> rnd = SubField<scalar>(virtualRandomField_v_,size_rnd,start_rnd);
-            SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_v_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
-
-            sumTmp_v+=sumProd(rnd,filt);
+            virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(0)=scalar(getRandomNumber());
+            virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(1)=scalar(getRandomNumber());
+            virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(2)=scalar(getRandomNumber());
         }
-
-        for (int ii=0;ii<(2*NLyField_[I].component(2)+1);ii++)
-        {
-            int start_rnd=get1DIndex(i+NLyMax_w-NLyField_[I].component(2)+ii, j+NLzMax_w-NLzField_[I].component(2), (NZ_+2*NLzMax_v));
-            int size_rnd=2*NLzField_[I].component(2)+1;
-            int size_filt=2*NLzField_[I].component(2)+1;
-            int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(2)+1));
-
-            SubField<scalar> rnd = SubField<scalar>(virtualRandomField_w_,size_rnd,start_rnd);
-            SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_w_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
-
-            sumTmp_w+=sumProd(rnd,filt);
-        }
-
-        virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(0)=sumTmp_u;
-        virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(1)=sumTmp_v;
-        virtualFilteredFieldProc_[Pstream::myProcNo()][subI].component(2)=sumTmp_w;
     }
 
     Pstream::gatherList(virtualFilteredFieldProc_);
@@ -888,9 +908,16 @@ void Foam::inflowGenerator::interpolFluct()
 
 void Foam::inflowGenerator::scaleFluct()
 {
+    bool doLundScaling=true;
     // Scaling of fluctuations and storing in field uFluctFinal
     // Lund (1998)
-    uFluctFinal=uFluctTemporal&Lund_;
+    if (doLundScaling)
+    {
+        uFluctFinal=uFluctTemporal&Lund_;
+    }else
+    {
+        uFluctFinal=uFluctTemporal;
+    }
 }
 
 
