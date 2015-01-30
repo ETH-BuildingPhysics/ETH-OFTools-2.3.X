@@ -138,12 +138,10 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     readInletData();
 
     // debug: write the interpolated source field if required.
-    if (dict.found("writeSourceFields"))
+    if (dict.lookupOrDefault("writeSourceFields",false)==true)
     {
         writeSourceFields();
     }
-
-
 
     R_= RField_;
     if (dict.found("R"))
@@ -160,12 +158,75 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
         FatalErrorIn("decayingTurbulenceFvPatchVectorField::")<< "Some RMS are negative in R"<<abort(FatalError);
     }
     
-    Lund_.replace(tensor::XX, sqrt(RField_.component(symmTensor::XX)));
-    Lund_.replace(tensor::YX, RField_.component(symmTensor::XY)/Lund_.component(tensor::XX));
-    Lund_.replace(tensor::ZX, RField_.component(symmTensor::XZ)/Lund_.component(tensor::XX));
-    Lund_.replace(tensor::YY, sqrt(RField_.component(symmTensor::YY)-sqr(Lund_.component(tensor::YX))));
-    Lund_.replace(tensor::ZY, (RField_.component(symmTensor::YZ) - Lund_.component(tensor::YX)*Lund_.component(tensor::ZX) )/Lund_.component(tensor::YY));
-    Lund_.replace(tensor::ZZ, sqrt(RField_.component(symmTensor::ZZ) - sqr(Lund_.component(tensor::ZX))-sqr(Lund_.component(tensor::ZY))));
+    if (dict.lookupOrDefault("robustLundTransformation",false)==false)
+    {
+        Info << "Standard Lund transformation algorithm applied." << endl;
+        Lund_.replace(tensor::XX, sqrt(RField_.component(symmTensor::XX)));
+        Lund_.replace(tensor::YX, RField_.component(symmTensor::XY)/Lund_.component(tensor::XX));
+        Lund_.replace(tensor::ZX, RField_.component(symmTensor::XZ)/Lund_.component(tensor::XX));
+        Lund_.replace(tensor::YY, sqrt(RField_.component(symmTensor::YY)-sqr(Lund_.component(tensor::YX))));
+        Lund_.replace(tensor::ZY, (RField_.component(symmTensor::YZ) - Lund_.component(tensor::YX)*Lund_.component(tensor::ZX) )/Lund_.component(tensor::YY));
+        Lund_.replace(tensor::ZZ, sqrt(RField_.component(symmTensor::ZZ) - sqr(Lund_.component(tensor::ZX))-sqr(Lund_.component(tensor::ZY))));
+    }
+    else
+    {
+        Info << "Robust Lund transformation algorithm applied." << endl;
+
+        forAll(Lund_,i)
+        {
+            bool errorFound = false;
+            scalar a11 = sqrt(RField_[i][0]);
+            scalar a21 = RField_[i][1]/a11;
+            scalar a31 = RField_[i][2]/a11;
+
+            if (RField_[i][3]<sqr(a21))  // test if a22 exists (risk of sqrt a negative number)
+            {
+                errorFound = true;
+            };
+            if (errorFound==false) // test if a32 exists (a22 must be different than zero)
+            {
+                scalar a22 = sqrt(RField_[i][3]-sqr(a21));
+                if (a22==0.0)
+                {
+                    errorFound = true;
+                };
+            };
+            if (errorFound==false) // test if a33 exists (risk of sqrt a negative number)
+            {
+                scalar a22 = sqrt(RField_[i][3]-sqr(a21));
+                scalar a32 = (RField_[i][4]-a21*a31)/a22;
+                if (RField_[i][5]<(sqr(a31)+sqr(a32)))
+                {
+                    errorFound = true;
+                };
+            };
+
+            if (errorFound==true)
+            {
+                Lund_[i][0] = sqrt(RField_[i][0]);  //xx
+                Lund_[i][4] = sqrt(RField_[i][3]);  //yy
+                Lund_[i][8] = sqrt(RField_[i][5]);  //zz
+            }
+            else
+            {
+
+                Lund_[i][0] = sqrt(RField_[i][0]);  //xx
+                Lund_[i][3] = RField_[i][1]/Lund_[i][0];  //yx
+                Lund_[i][4] = sqrt(RField_[i][3]-sqr(Lund_[i][3]));  //yy
+                Lund_[i][6] = RField_[i][2]/Lund_[i][0];  //zx
+                Lund_[i][7] = (RField_[i][4]-Lund_[i][3]*Lund_[i][6])/Lund_[i][4];  //zy
+                Lund_[i][8] = sqrt(RField_[i][5]-sqr(Lund_[i][6])-sqr(Lund_[i][7]));  //zz
+            };
+
+        };
+    };
+
+    // debug: write the interpolated source field if required.
+    if (dict.lookupOrDefault("writeSourceFields",false)==true)
+    {
+        fileName rootPath(this->db().time().constant()/"boundaryData"/this->patch().name());
+        OFstream(rootPath/"LundPatch")() << Lund_;
+    }
 
     if (dict.found("ind"))
         ind_ = readScalar(dict.lookup("ind"));
@@ -364,83 +425,31 @@ void Foam::decayingTurbulenceFvPatchVectorField::readInletData()
 
 void Foam::decayingTurbulenceFvPatchVectorField::writeSourceFields()
 {
-    // save data in files with header
-    IOField<vector> IOpoints
-    (
-        IOobject
-        (
-            "pointsPatch",
-            this->db().time().constant(),
-            "boundaryData"
-           /this->patch().name(),
-            this->db(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
-        ),
-        this->patch().Cf()
-    );
-
-    IOField<symmTensor> IORField
-    (
-        IOobject
-        (
-            "RPatch",
-            this->db().time().constant(),
-            "boundaryData"
-           /this->patch().name(),
-            this->db(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
-        ),
-        RField_
-    );
-
-    IOField<scalar> IOLField
-    (
-        IOobject
-        (
-            "LPatch",
-            this->db().time().constant(),
-            "boundaryData"
-           /this->patch().name(),
-            this->db(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
-        ),
-        LField_
-    );
-
-    IOField<vector> IORefField
-    (
-        IOobject
-        (
-            "refPatch",
-            this->db().time().constant(),
-            "boundaryData"
-           /this->patch().name(),
-            this->db(),
-            IOobject::NO_READ,
-            IOobject::NO_WRITE,
-            false
-        ),
-        refField_
-    );
-
-    IOpoints.write();
-    IORField.write();
-    IOLField.write();
-    IORefField.write();
+    // example to save data in files with header (not used)
+//    IOField<symmTensor> IORField
+//    (
+//        IOobject
+//        (
+//            "RPatch_withHeader",
+//            this->db().time().constant(),
+//            "boundaryData"
+//           /this->patch().name(),
+//            this->db(),
+//            IOobject::NO_READ,
+//            IOobject::NO_WRITE,
+//            false
+//        ),
+//        RField_
+//    );
+//    IORField.write();
 
     // save data in files without header
     fileName rootPath(this->db().time().constant()/"boundaryData"/this->patch().name());
 
-    OFstream(rootPath/"pointsPatch_noHeader")() << this->patch().Cf();
-    OFstream(rootPath/"RPatch_noHeader")() << RField_;
-    OFstream(rootPath/"LPatch_noHeader")() << LField_;
-    OFstream(rootPath/"refPatch_noHeader")() << refField_;
+    OFstream(rootPath/"pointsPatch")() << this->patch().Cf();
+    OFstream(rootPath/"RPatch")() << RField_;
+    OFstream(rootPath/"LPatch")() << LField_;
+    OFstream(rootPath/"refPatch")() << refField_;
 }
 
 void Foam::decayingTurbulenceFvPatchVectorField::doUpdate()
