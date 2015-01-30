@@ -137,6 +137,14 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     //Fills  LField_, refField_, RField_
     readInletData();
 
+    // debug: write the interpolated source field if required.
+    if (dict.found("writeSourceFields"))
+    {
+        writeSourceFields();
+    }
+
+
+
     R_= RField_;
     if (dict.found("R"))
         R_ = Field<symmTensor>("R", dict, p.size());
@@ -158,7 +166,6 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     Lund_.replace(tensor::YY, sqrt(RField_.component(symmTensor::YY)-sqr(Lund_.component(tensor::YX))));
     Lund_.replace(tensor::ZY, (RField_.component(symmTensor::YZ) - Lund_.component(tensor::YX)*Lund_.component(tensor::ZX) )/Lund_.component(tensor::YY));
     Lund_.replace(tensor::ZZ, sqrt(RField_.component(symmTensor::ZZ) - sqr(Lund_.component(tensor::ZX))-sqr(Lund_.component(tensor::ZY))));
-    
 
     if (dict.found("ind"))
         ind_ = readScalar(dict.lookup("ind"));
@@ -353,6 +360,87 @@ void Foam::decayingTurbulenceFvPatchVectorField::readInletData()
         RField_ = mapperPtr_().interpolate(Rs_);
 
     }
+}
+
+void Foam::decayingTurbulenceFvPatchVectorField::writeSourceFields()
+{
+    // save data in files with header
+    IOField<vector> IOpoints
+    (
+        IOobject
+        (
+            "pointsPatch",
+            this->db().time().constant(),
+            "boundaryData"
+           /this->patch().name(),
+            this->db(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        this->patch().Cf()
+    );
+
+    IOField<symmTensor> IORField
+    (
+        IOobject
+        (
+            "RPatch",
+            this->db().time().constant(),
+            "boundaryData"
+           /this->patch().name(),
+            this->db(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        RField_
+    );
+
+    IOField<scalar> IOLField
+    (
+        IOobject
+        (
+            "LPatch",
+            this->db().time().constant(),
+            "boundaryData"
+           /this->patch().name(),
+            this->db(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        LField_
+    );
+
+    IOField<vector> IORefField
+    (
+        IOobject
+        (
+            "refPatch",
+            this->db().time().constant(),
+            "boundaryData"
+           /this->patch().name(),
+            this->db(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        refField_
+    );
+
+    IOpoints.write();
+    IORField.write();
+    IOLField.write();
+    IORefField.write();
+
+    // save data in files without header
+    fileName rootPath(this->db().time().constant()/"boundaryData"/this->patch().name());
+
+    OFstream(rootPath/"pointsPatch_noHeader")() << this->patch().Cf();
+    OFstream(rootPath/"RPatch_noHeader")() << RField_;
+    OFstream(rootPath/"LPatch_noHeader")() << LField_;
+    OFstream(rootPath/"refPatch_noHeader")() << refField_;
 }
 
 void Foam::decayingTurbulenceFvPatchVectorField::doUpdate()

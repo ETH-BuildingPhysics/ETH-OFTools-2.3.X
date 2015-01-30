@@ -137,6 +137,7 @@ private:
     
     void doUpdate();
     void readInletData();
+    void writeSourceFields();
 
 };
 } 
