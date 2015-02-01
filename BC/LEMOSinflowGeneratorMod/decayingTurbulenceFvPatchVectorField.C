@@ -171,7 +171,6 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     else
     {
         Info << "Robust Lund transformation algorithm applied." << endl;
-
         forAll(Lund_,i)
         {
             bool errorFound = false;
@@ -179,7 +178,7 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
             scalar a21 = RField_[i][1]/a11;
             scalar a31 = RField_[i][2]/a11;
 
-            if (RField_[i][3]<sqr(a21))  // test if a22 exists (risk of sqrt a negative number)
+            if (RField_[i][3]<=sqr(a21))  // test if a22 exists (risk of sqrt a negative number)
             {
                 errorFound = true;
             };
@@ -209,7 +208,6 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
             }
             else
             {
-
                 Lund_[i][0] = sqrt(RField_[i][0]);  //xx
                 Lund_[i][3] = RField_[i][1]/Lund_[i][0];  //yx
                 Lund_[i][4] = sqrt(RField_[i][3]-sqr(Lund_[i][3]));  //yy

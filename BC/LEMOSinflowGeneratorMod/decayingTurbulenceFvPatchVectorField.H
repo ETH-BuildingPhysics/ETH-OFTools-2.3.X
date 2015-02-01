@@ -25,20 +25,29 @@ Class
     Foam::decayingTurbulenceFvPatchVectorField
 
 Description
-    direction: It is +1 or −1 depending on wheather the flow goes in positive or negative x-direction,respectively.
-    LField: The integral length field.
-    refField: The external velocity field.
-    RField: The Reynolds stress tensor field.
-    value: The value of the field; at the initial time it should be equal to the refField field.
+    Generate a valid (in term of Reynolds stress and lenght scales) turbulent
+    inflow for LES, DES or DNS. This method use the Lund transformation
+    (Lund, Wu and Squires, 1998) to construct a fluctuating velocity field.
+    Check if your R field is valid against this transformation! If not, use the
+    robust Lund transformation. It sets Rij=0 (with i not equal to j).
+
+    Parameters:
+    * direction: It is +1 or −1 depending on wheather the flow goes in positive or negative x-direction,respectively.
+    * writeSourceFields: () write the interpolated ref, R, L and Lund fields if true. Debug purpose.
+    * robustLundTransformation: (default=false) Use the robust Lund transformation algorithm.
+    * LField: The integral length field.
+    * refField: The external velocity field.
+    * RField: The Reynolds stress tensor field.
+    * value: The value of the field; at the initial time it should be equal to the refField field.
 
     inlet
     {
-	type decayingTurbulenceInflowGenerator;
- 	direction 1;
-	LField nonuniform List<scalar> ...;
-	refField nonuniform List<vector> ...;
-	RField nonuniform List<symmTensor> ...;
-	value nonuniform List<vector> ...;
+        type decayingTurbulenceInflowGeneratorMod;
+        direction 1;
+        LField nonuniform List<scalar> ...;
+        refField nonuniform List<vector> ...;
+        RField nonuniform List<symmTensor> ...;
+        value nonuniform List<vector> ...;
     }
 
 SourceFiles
