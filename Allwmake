@@ -1,0 +1,93 @@
+#!/bin/sh
+
+
+sourcesPath=(
+
+)
+
+BoundaryConditionsPath=(
+    FilteredNoiseInflowGenerator
+    LEMOSinflowGeneratorMod
+)
+
+functionObjectsPath=(
+    CnC
+    timeAbort
+)
+
+solversPath=(
+#     pisoScalarFoam
+#     pisoScalarSourceFoam
+#     pisoScalarSourceFoam221
+    pisoScalarSourceFoam230
+)
+
+utilitiesPath=(
+    gradU
+    LESdelta
+    postAvg
+    resLES
+    scalarCovariance
+    scalarFluxes
+    snGradU
+    yPlusMeanLES
+)
+
+compile the boundary conditions
+echo "-------------------------------"
+echo "compile the boundary conditions"
+echo "-------------------------------"
+cd BC
+for i in "${BoundaryConditionsPath[@]}"
+do
+    cd $i
+    wmake
+    cd ..    
+done
+cd ..
+echo ""
+
+# compile the function objects
+echo "----------------------------"
+echo "compile the function objects"
+echo "----------------------------"
+cd FunctionObjects
+for i in "${functionObjectsPath[@]}"
+do 
+    cd $i
+    wmake
+    cd .. 
+done
+cd ..
+echo ""
+
+
+# compile the solvers
+echo "-------------------"
+echo "compile the solvers"
+echo "-------------------"
+cd Solvers
+for i in "${solversPath[@]}"
+do    
+    cd $i
+    wmake
+    cd ..
+done
+cd ..
+echo ""
+
+# compile the utilities
+echo "---------------------"
+echo "compile the utilities"
+echo "---------------------"
+cd Utilities
+for i in "${utilitiesPath[@]}"
+do
+    cd $i
+    wmake
+    cd ..    
+done
+cd ..
+echo ""
+
+
