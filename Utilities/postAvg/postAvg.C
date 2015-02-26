@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     );
 	
 	// create the new file name with the _mean extension
-    const word EXT_MEAN = "_Mean";
+    const word EXT_MEAN = "Mean";
     const word meanFieldName=fieldName+EXT_MEAN;
     
     volScalarField mean
