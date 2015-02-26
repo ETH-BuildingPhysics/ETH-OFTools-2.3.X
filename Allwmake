@@ -34,7 +34,7 @@ utilitiesPath=(
     Q2D
 )
 
-compile the boundary conditions
+# compile the boundary conditions
 echo "-------------------------------"
 echo "compile the boundary conditions"
 echo "-------------------------------"
