@@ -1,0 +1,4 @@
+
+Q2D.C
+
+EXE = $(FOAM_APPBIN)/Q2D

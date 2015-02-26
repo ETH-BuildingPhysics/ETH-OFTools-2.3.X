@@ -31,6 +31,7 @@ utilitiesPath=(
     scalarFluxes
     snGradU
     yPlusMeanLES
+    Q2D
 )
 
 compile the boundary conditions
