@@ -73,6 +73,42 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
     {
         Info << "    No U" << endl;
     }
+
+    IOobject UMeanHeader
+    (
+        "UMean",
+        runTime.timeName(),
+        mesh,
+        IOobject::MUST_READ
+    );
+    
+  
+    if (UMeanHeader.headerOk())
+    {
+        Info<< "    Reading field UMean" << endl;
+        const volVectorField UMean(UMeanHeader, mesh);
+
+        Info<< "    Calculating velocity gradient gradUMean" << endl;
+
+        volTensorField gradUMean
+        (
+            IOobject
+            (
+                "gradUMean",
+                runTime.timeName(),
+                mesh,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            fvc::grad(UMean)
+        );
+        
+        gradUMean.write();
+    }
+    else
+    {
+        Info << "    No UMean" << endl;
+    }
     
     Info<< "End" << endl;
 }
