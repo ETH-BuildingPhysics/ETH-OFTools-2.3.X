@@ -296,6 +296,7 @@ def saveFoamFileSurfaceToHDF5(surfLocAbsPath,tsList,surfName,var,hdf5parser):
     # loop through all timestep in tsList and save variables
     for ts in tsList:
         print('')
+        print('for surface = '+surfName)
         print('timeStep = '+ts)
         # test if the surface exists in ts
         surfAbsPath = os.path.abspath(os.path.join(surfLocAbsPath,ts,surfName))
