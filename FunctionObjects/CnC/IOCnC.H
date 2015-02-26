@@ -39,7 +39,7 @@ Description
 
 namespace Foam
 {
-    typedef IOOutputFilter<CnC> IOsystemCall;
+    typedef IOOutputFilter<CnC> IOCnC;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
