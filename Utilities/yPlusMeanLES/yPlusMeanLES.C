@@ -78,12 +78,27 @@ int main(int argc, char *argv[])
             dimensionedScalar("yPlusMean", dimless, 0.0)
         );
 
+
         Info<< "Reading field UMean\n" << endl;
         volVectorField UMean
         (
             IOobject
             (
                 "UMean",
+                runTime.timeName(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            ),
+            mesh
+        );
+
+        Info<< "Reading field nuSgsMean\n" << endl;
+        volScalarField nuSgsMean
+        (
+            IOobject
+            (
+                "nuSgsMean",
                 runTime.timeName(),
                 mesh,
                 IOobject::MUST_READ,
@@ -100,13 +115,12 @@ int main(int argc, char *argv[])
         (
             incompressible::LESModel::New(UMean, phiMean, laminarTransport)
         );
+        const volScalarField nuLam(sgsModel->nu());
+        volScalarField nuEff(nuLam+nuSgsMean);
 
-        volScalarField::GeometricBoundaryField d = nearWallDist(mesh).y();
-        volScalarField nuEff(sgsModel->nuEff());
-
+         volScalarField::GeometricBoundaryField d = nearWallDist(mesh).y();
         const fvPatchList& patches = mesh.boundary();
 
-        const volScalarField nuLam(sgsModel->nu());
 
         forAll(patches, patchi)
         {
