@@ -913,7 +913,7 @@ void Foam::inflowGenerator::scaleFluct()
     // Lund (1998)
     if (doLundScaling)
     {
-        uFluctFinal=uFluctTemporal&Lund_;
+        uFluctFinal=Lund_&uFluctTemporal;
     }else
     {
         uFluctFinal=uFluctTemporal;
