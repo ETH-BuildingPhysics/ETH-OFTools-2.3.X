@@ -113,10 +113,16 @@ def parseFoamFile_sampledSurface(foamFile):
             pass
         if (catchFirstNb==False and len(match)==1):
             catchFirstNb = True
+        elif (catchFirstNb==False and len(match)==2): #case for a constant scalar field
+            catchFirstNb = True
+            matchfloat = [float(nb) for nb in match]
+            output.append(matchfloat[1])
+        elif (catchFirstNb==False and len(match)>2): #case for a constant <type other than scalar> field
+            catchFirstNb = True
+            matchfloat = [float(nb) for nb in match]
+            output.append(matchfloat)
         elif (catchFirstNb==True and len(match)>0):
-            matchfloat = list()
-            for nb in match:                
-                matchfloat.append(float(nb))
+            matchfloat = [float(nb) for nb in match]
             if len(matchfloat)==1:
                 output.append(matchfloat[0])
             else:
@@ -305,6 +311,13 @@ def saveFoamFileSurfaceToHDF5(surfLocAbsPath,tsList,surfName,var,hdf5parser):
                 for i in range(len(selectFields)):
                     key = selectFields[i]
                     data = parseFoamFile_sampledSurface(selectFieldsPath[i])
+                    if len(data)==len(points):
+                        pass
+                    else:
+                        if len(data.shape)==1: #scalar const field
+                            data = data[0]*np.ones(len(points))
+                        else:
+                            data = data*np.ones(data.shape)
                     selectDict[key] = data
                 saveTsToHDF5(ts,selectDict,hdf5parser)
         else:
@@ -444,8 +457,12 @@ if os.path.exists(surfLocAbsPath):
 else:
     sys.exit('The surface location "'+surfLocAbsPath+'" does not exist. Exit')  
 
-# get the list of timestep and sort them
-tsList = get_immediate_SubDirList(surfLocAbsPath)
+# get the list of timestep, check if it is a number and sort them
+tsListAll = get_immediate_SubDirList(surfLocAbsPath)
+tsList = []
+for ts in tsListAll:
+    if is_number(ts)==True:
+        tsList.append(ts)  
 tsList.sort()
 
 # define the absolut path of the HDF5 file
