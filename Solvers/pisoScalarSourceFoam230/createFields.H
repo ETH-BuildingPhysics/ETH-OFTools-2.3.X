@@ -91,6 +91,7 @@
         }
         else
         {
+        Info << "Scalar Field " << names[i] << " does not exist yet, reading sdefault" << endl;
             volScalarField sdefault
             (
                 IOobject
