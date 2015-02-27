@@ -16,6 +16,13 @@ import numpy as np
 import scipy as sp
 
 # * * * * * * * * * * * * * * * Functions * * * * * * * * * * * * * * * * * * #
+def is_number(string):
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
+
 def pathLeaf(path):
     '''
     get trailing file from a path (works on windows and linux)
@@ -23,6 +30,22 @@ def pathLeaf(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 
+def sortNumStrList(numStrList):
+    '''
+    Sort a list of number stored as a list of string. StrNumList is the list of
+    number as string.
+    '''
+    #tsListNum=[]
+    numFltList = []
+    for nb in numStrList:
+        if is_number(nb)==True:
+            numFltList.append(float(nb))
+    numFltList = np.array(numFltList)
+    numStrList_idx = np.argsort(numFltList)
+    numStrList_sort = [numStrList[idx] for idx in numStrList_idx]
+    return numStrList_sort
+    
+    
 
 def getH5metaData(hdf5Parser,varList):
     '''
@@ -36,12 +59,12 @@ def getH5metaData(hdf5Parser,varList):
     
     # get all the base keys and timestep keys
     allkeys = hdf5Parser.keys()
-    allkeys.sort()
     tskeys = allkeys
     try:
         tskeys.pop(tskeys.index('mesh'))
     except:
         raise ValueError('no "mesh" entry in the HDF5 file. Exit.')
+    tskeys = sortNumStrList(tskeys)
     
     # fill nFaces and nPoints
     nFaces = hdf5Parser['mesh']['faces'].shape[0]
@@ -175,9 +198,9 @@ fo.write(''+btab+'<Domain>\n')
 fo.write(''+2*btab+'<Grid Name="FieldData" GridType="Collection" CollectionType="Temporal">\n')
 fo.write('\n')
 
-# write rhe body
+# write the body
 allTs = varsPerTs.keys()
-allTs.sort()
+allTs = sortNumStrList(allTs)
 for tsStr in allTs:
     tab = 2*btab
     fo.write(''+tab+'<Grid GridType="Collection" CollectionType="Spatial">\n')

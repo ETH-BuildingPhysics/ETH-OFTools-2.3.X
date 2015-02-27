@@ -26,6 +26,22 @@ def is_number(string):
         return False
 
 
+def sortNumStrList(numStrList):
+    '''
+    Sort a list of number stored as a list of string. StrNumList is the list of
+    number as string.
+    '''
+    #tsListNum=[]
+    numFltList = []
+    for nb in numStrList:
+        if is_number(nb)==True:
+            numFltList.append(float(nb))
+    numFltList = np.array(numFltList)
+    numStrList_idx = np.argsort(numFltList)
+    numStrList_sort = [numStrList[idx] for idx in numStrList_idx]
+    return numStrList_sort
+    
+
 def get_immediate_SubDirList(a_dir):
     '''
     Get the list of direct subFolder included in "a_dir"
@@ -464,7 +480,8 @@ tsList = []
 for ts in tsListAll:
     if is_number(ts)==True:
         tsList.append(ts)  
-tsList.sort()
+tsList = sortNumStrList(tsList)
+print(tsList)
 
 # define the absolut path of the HDF5 file
 hdf5file = None
