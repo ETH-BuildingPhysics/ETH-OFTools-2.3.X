@@ -158,10 +158,14 @@ else:
 # get list of time step in probename and list of time step absolute path
 dirList = getSubDirList(probenameAbsPath)
 tsList = []
+tsListNum=[]
 for d in dirList:
     if is_number(d)==True:
         tsList.append(d)
-tsList.sort()
+        tsListNum.append(float(d))
+tsListNum=np.array(tsListNum)
+tsList_idx=np.argsort(tsListNum)
+tsList=[tsList[idx] for idx in tsList_idx]
 tsList_absPath = [os.path.join(probenameAbsPath,tstep) for tstep in tsList]
 
 
