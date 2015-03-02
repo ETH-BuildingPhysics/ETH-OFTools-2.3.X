@@ -63,7 +63,8 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     ind_         (2),
     direction_   (1),
     mapperPtr_(NULL),
-    perturb_(0)
+    perturb_(0),
+    nVortField_(p.size())
 {
     //Info << "NULL constructor " << this->dimensionedInternalField().name() << endl;
 }
@@ -87,7 +88,8 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     ind_         (ptf.ind_),
     direction_   (ptf.direction_),
     mapperPtr_(NULL),
-    perturb_(ptf.perturb_)
+    perturb_(ptf.perturb_),
+    nVortField_  (ptf.nVortField_, mapper)
 {
 
     //Info << "mapper constructor " << this->dimensionedInternalField().name() << endl;
@@ -111,7 +113,8 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     ind_         (2),
     direction_   (readScalar(dict.lookup("direction"))),
     mapperPtr_(NULL),
-    perturb_(dict.lookupOrDefault("perturb", 1e-5))
+    perturb_(dict.lookupOrDefault("perturb", 1e-5)),
+    nVortField_  (p.size(),pTraits<scalar>::zero)
 {
     //Info << "dict constructor " << this->dimensionedInternalField().name() << endl;
     if (dict.found("vortons"))
@@ -259,7 +262,8 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     ind_         (ptf.ind_),
     direction_   (ptf.direction_),
     mapperPtr_(NULL),
-    perturb_(ptf.perturb_)
+    perturb_(ptf.perturb_),
+    nVortField_  (ptf.nVortField_)
 {
     //Info << "ptf constructor " << this->dimensionedInternalField().name() << endl;
 }
@@ -281,7 +285,8 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     ind_         (ptf.ind_),
     direction_   (ptf.direction_),
     mapperPtr_(NULL),
-    perturb_(ptf.perturb_)
+    perturb_(ptf.perturb_),
+    nVortField_  (ptf.nVortField_)
 {
 
     //Info << "ptf,If constructor " << this->dimensionedInternalField().name() << endl;
@@ -296,6 +301,7 @@ void Foam::decayingTurbulenceFvPatchVectorField::autoMap(const fvPatchFieldMappe
     refField_.autoMap(m);
     RField_.autoMap(m);
     R_.autoMap(m);
+    nVortField_.autoMap(m);
 
     // Clear interpolator
     mapperPtr_.clear();
@@ -314,6 +320,8 @@ void Foam::decayingTurbulenceFvPatchVectorField::rmap(const fvPatchField<vector>
     refField_.rmap(tiptf.refField_, addr);
     RField_.rmap(tiptf.RField_, addr);
     R_.rmap(tiptf.R_, addr);
+    nVortField_.rmap(tiptf.nVortField_, addr);
+
 
     // Clear interpolator
     mapperPtr_.clear();
@@ -511,7 +519,13 @@ void Foam::decayingTurbulenceFvPatchVectorField::doUpdate()
                     if (!allowed)
                         continue;
                     else
+                    {
                         vortons_.insert(decayingVorton(L[I], v, RF[I], (direction_ > 0) ? x+ls : x-ls));
+                        if(debug)
+                        {
+                            nVortField_[I]++;
+                        }
+                    }
                 }
             }
         }
@@ -637,6 +651,13 @@ void Foam::decayingTurbulenceFvPatchVectorField::write(Ostream& os) const
         fileName outputFile(db().time().path()/db().time().timeName()/+"vortons_"+this->dimensionedInternalField().name());
         OFstream os2(outputFile);
         os2.writeKeyword("vortons")<<vortons_<<token::END_STATEMENT<<nl;
+
+        if(debug)
+        {
+            fileName rootPath(this->db().time().timePath());
+            OFstream(rootPath/"nVortField")() << nVortField_;
+
+        }
     }
 
     //if (Pstream::master())

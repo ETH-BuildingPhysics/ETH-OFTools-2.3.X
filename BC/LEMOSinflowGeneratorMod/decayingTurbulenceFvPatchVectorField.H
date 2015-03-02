@@ -82,6 +82,7 @@ private:
     Field<symmTensor>      R_;
     label                  ind_;
     label                  direction_;
+    Field<scalar>          nVortField_; //debug field, counts number of vortons
 
     //- 2D interpolation
     autoPtr<pointToPointPlanarInterpolation> mapperPtr_;
