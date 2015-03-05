@@ -21,22 +21,28 @@ License
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
+Typedef
+    Foam::IOscalarVelocityProduct
+
+Description
+
 \*---------------------------------------------------------------------------*/
 
-#include "addScalarTimeUFunctionObject.H"
+#ifndef IOscalarVelocityProduct_H
+#define IOscalarVelocityProduct_H
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+#include "scalarVelocityProduct.H"
+#include "IOOutputFilter.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    defineNamedTemplateTypeNameAndDebug(addScalarTimeUFunctionObject, 0);
-
-    addToRunTimeSelectionTable
-    (
-        functionObject,
-        addScalarTimeUFunctionObject,
-        dictionary
-    );
+    typedef IOOutputFilter<scalarVelocityProduct> IOscalarVelocityProduct;
 }
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

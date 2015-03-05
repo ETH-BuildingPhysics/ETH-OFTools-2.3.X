@@ -23,7 +23,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "addScalarTimeU.H"
+#include "scalarVelocityProduct.H"
 #include "volFields.H"
 #include "dictionary.H"
 #include "fvcGrad.H"
@@ -32,13 +32,13 @@ License
 
 namespace Foam
 {
-defineTypeNameAndDebug(addScalarTimeU, 0);
+defineTypeNameAndDebug(scalarVelocityProduct, 0);
 }
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
-Foam::addScalarTimeU::addScalarTimeU
+Foam::scalarVelocityProduct::scalarVelocityProduct
 (
     const word& name,
     const objectRegistry& obr,
@@ -60,7 +60,7 @@ Foam::addScalarTimeU::addScalarTimeU
         active_ = false;
         WarningIn
         (
-            "addScalarTimeU::addScalarTimeU"
+            "scalarVelocityProduct::scalarVelocityProduct"
             "("
                 "const word&, "
                 "const objectRegistry&, "
@@ -114,13 +114,13 @@ Foam::addScalarTimeU::addScalarTimeU
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
-Foam::addScalarTimeU::~addScalarTimeU()
+Foam::scalarVelocityProduct::~scalarVelocityProduct()
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-void Foam::addScalarTimeU::read(const dictionary& dict)
+void Foam::scalarVelocityProduct::read(const dictionary& dict)
 {
     if (active_)
     {
@@ -134,7 +134,7 @@ void Foam::addScalarTimeU::read(const dictionary& dict)
 }
 
 
-void Foam::addScalarTimeU::execute()
+void Foam::scalarVelocityProduct::execute()
 {
     if (active_)
     {
@@ -158,7 +158,7 @@ void Foam::addScalarTimeU::execute()
 }
 
 
-void Foam::addScalarTimeU::end()
+void Foam::scalarVelocityProduct::end()
 {
     if (active_)
     {
@@ -167,13 +167,13 @@ void Foam::addScalarTimeU::end()
 }
 
 
-void Foam::addScalarTimeU::timeSet()
+void Foam::scalarVelocityProduct::timeSet()
 {
     // Do nothing
 }
 
 
-void Foam::addScalarTimeU::write()
+void Foam::scalarVelocityProduct::write()
 {
     if (active_ && writeSUfields_)
     {

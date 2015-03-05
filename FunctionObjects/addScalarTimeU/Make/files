@@ -1,5 +1,0 @@
-addScalarTimeU.C
-addScalarTimeUFunctionObject.C
-
-
-LIB = $(FOAM_USER_LIBBIN)/libaddScalarTimeU

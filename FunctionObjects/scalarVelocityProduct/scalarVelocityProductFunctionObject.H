@@ -22,23 +22,26 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Typedef
-    Foam::IOaddScalarTimeU
+    Foam::scalarVelocityProductFunctionObject
 
 Description
 
+SourceFiles
+    scalarVelocityProductFunctionObject.C
+
 \*---------------------------------------------------------------------------*/
 
-#ifndef IOaddScalarTimeU_H
-#define IOaddScalarTimeU_H
+#ifndef scalarVelocityProductFunctionObject_H
+#define scalarVelocityProductFunctionObject_H
 
-#include "addScalarTimeU.H"
-#include "IOOutputFilter.H"
+#include "scalarVelocityProduct.H"
+#include "OutputFilterFunctionObject.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
-    typedef IOOutputFilter<addScalarTimeU> IOaddScalarTimeU;
+    typedef OutputFilterFunctionObject<scalarVelocityProduct> scalarVelocityProductFunctionObject;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

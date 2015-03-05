@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Class
-    Foam::addScalarTimeU
+    Foam::scalarVelocityProduct
 
 Group
     grpUtilitiesFunctionObjects
@@ -44,10 +44,10 @@ Description
             1. Use the post-processing tool "toolName" to get SaPrimeUPrimeMean
                and SbPrimeUPrimeMean
 
-    addScalarTimeU
+    scalarVelocityProduct
     {
-        type                 addScalarTimeU;
-        functionObjectLibs   ("libaddScalarTimeU.so");
+        type                 scalarVelocityProduct;
+        functionObjectLibs   ("libscalarVelocityProduct.so");
         enabled              true;
         writeSUfields        false;
         outputControl        outputTime;
@@ -61,12 +61,12 @@ Description
     }
 
 SourceFiles
-    addScalarTimeU.C
+    scalarVelocityProduct.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef addScalarTimeU_H
-#define addScalarTimeU_H
+#ifndef scalarVelocityProduct_H
+#define scalarVelocityProduct_H
 
 #include "volFieldsFwd.H"
 #include "surfaceFieldsFwd.H"
@@ -85,14 +85,14 @@ class polyMesh;
 class mapPolyMesh;
 
 /*---------------------------------------------------------------------------*\
-                          Class addScalarTimeU Declaration
+                          Class scalarVelocityProduct Declaration
 \*---------------------------------------------------------------------------*/
 
-class addScalarTimeU
+class scalarVelocityProduct
 {
     // Private data
 
-        //- Name of this set of addScalarTimeU objects
+        //- Name of this set of scalarVelocityProduct objects
         word name_;
 
         //- Reference to the database
@@ -116,23 +116,23 @@ class addScalarTimeU
     // Private Member Functions
 
         //- Disallow default bitwise copy construct
-        addScalarTimeU(const addScalarTimeU&);
+        scalarVelocityProduct(const scalarVelocityProduct&);
 
         //- Disallow default bitwise assignment
-        void operator=(const addScalarTimeU&);
+        void operator=(const scalarVelocityProduct&);
 
 
 public:
 
     //- Runtime type information
-    TypeName("addScalarTimeU");
+    TypeName("scalarVelocityProduct");
 
 
     // Constructors
 
         //- Construct for given objectRegistry and dictionary.
         //  Allow the possibility to load fields from files
-        addScalarTimeU
+        scalarVelocityProduct
         (
             const word& name,
             const objectRegistry&,
@@ -142,18 +142,18 @@ public:
 
 
     //- Destructor
-    virtual ~addScalarTimeU();
+    virtual ~scalarVelocityProduct();
 
 
     // Member Functions
 
-        //- Return name of the set of addScalarTimeU
+        //- Return name of the set of scalarVelocityProduct
         virtual const word& name() const
         {
             return name_;
         }
 
-        //- Read the addScalarTimeU data
+        //- Read the scalarVelocityProduct data
         virtual void read(const dictionary&);
 
         //- Execute, currently does nothing
