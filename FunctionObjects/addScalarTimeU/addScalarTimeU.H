@@ -74,6 +74,9 @@ class addScalarTimeU
         //- Name of velocity field, default is "U"
         word UName_;
 
+        //- list of scalar field
+        wordList scalarFields_;
+
     // Private Member Functions
 
         //- Disallow default bitwise copy construct

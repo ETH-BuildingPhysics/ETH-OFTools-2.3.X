@@ -49,7 +49,9 @@ Foam::addScalarTimeU::addScalarTimeU
     name_(name),
     obr_(obr),
     active_(true),
-    UName_("U")
+    UName_("U"),
+    scalarFields_(dict.lookup("scalarFields"))
+//    scalarFields_()
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -69,29 +71,38 @@ Foam::addScalarTimeU::addScalarTimeU
     }
 
     read(dict);
+    Info << "*** scalarFields_ = " << scalarFields_ << endl;
 
     if (active_)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
-        volScalarField* QPtr
+        const volScalarField& Sa = mesh.lookupObject<volScalarField>("Sa");
+        const dimensionSet& SaDim = Sa.dimensions();
+        Info << "*** SaDim = " << SaDim << endl;
+
+        const volVectorField& U = mesh.lookupObject<volVectorField>(UName_);
+        const dimensionSet& UDim = U.dimensions();
+        Info << "*** UDim = " << UDim << endl;
+
+        volVectorField* STimeUPtr
         (
-            new volScalarField
+            new volVectorField
             (
                 IOobject
                 (
-                    type(),
+                    "SaU",
                     mesh.time().timeName(),
                     mesh,
                     IOobject::NO_READ,
                     IOobject::NO_WRITE
                 ),
                 mesh,
-                dimensionedScalar("0", dimless/sqr(dimTime), 0.0)
+                dimensionedVector("SaU", SaDim*UDim, vector::zero)
             )
         );
 
-        mesh.objectRegistry::store(QPtr);
+        mesh.objectRegistry::store(STimeUPtr);
     }
 }
 
@@ -119,18 +130,27 @@ void Foam::addScalarTimeU::execute()
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
-        const volVectorField& U =
-            mesh.lookupObject<volVectorField>(UName_);
+        const volVectorField& U = mesh.lookupObject<volVectorField>(UName_);
 
-        const volTensorField gradU(fvc::grad(U));
+        const volScalarField& S = mesh.lookupObject<volScalarField>("Sa");
 
-        volScalarField& Q =
-            const_cast<volScalarField&>
+//        const volTensorField gradU(fvc::grad(U));
+
+//        volScalarField& Q =
+//            const_cast<volScalarField&>
+//            (
+//                mesh.lookupObject<volScalarField>(type())
+//            );
+
+//        Q = 0.5*(sqr(tr(gradU)) - tr(((gradU) & (gradU))));
+
+        volVectorField& STimeU =
+            const_cast<volVectorField&>
             (
-                mesh.lookupObject<volScalarField>(type())
+                mesh.lookupObject<volVectorField>("SaU")
             );
 
-        Q = 0.5*(sqr(tr(gradU)) - tr(((gradU) & (gradU))));
+        STimeU = S*U;
     }
 }
 
@@ -154,14 +174,14 @@ void Foam::addScalarTimeU::write()
 {
     if (active_)
     {
-        const volScalarField& Q =
-            obr_.lookupObject<volScalarField>(type());
+        const volVectorField& STimeU =
+            obr_.lookupObject<volVectorField>("SaU");
 
         Info<< type() << " " << name_ << " output:" << nl
-            << "    writing field " << Q.name() << nl
+            << "    writing field " << STimeU.name() << nl
             << endl;
 
-        Q.write();
+        STimeU.write();
     }
 }
 
