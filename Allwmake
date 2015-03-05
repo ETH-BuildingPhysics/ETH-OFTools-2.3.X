@@ -12,6 +12,7 @@ BoundaryConditionsPath=(
 
 functionObjectsPath=(
     CnC
+    scalarVelocityProduct
     timeAbort
 )
 
