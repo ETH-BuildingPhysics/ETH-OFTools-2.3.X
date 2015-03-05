@@ -28,10 +28,40 @@ Group
     grpUtilitiesFunctionObjects
 
 Description
+    For each given scalar field Si, this function object stores the Si*U fields
+    on the mesh database for further manipulation. After averaging such fields,
+    The fields SiPrimeUPrimeMean can be calculated with the ad hoc
+    post-processing utility.
 
+    Work Flow example:
+        During the run:
+            1. Calculate the scalar transport of Sa and Sb with the function
+               object scalarTransport
+            2. Use this function object to add SaU and SbU to the mesh database
+               and write the if necessary.
+            3. Average SaU and SbU with the function object fieldAverage.
+        After the run:
+            1. Use the post-processing tool "toolName" to get SaPrimeUPrimeMean
+               and SbPrimeUPrimeMean
+
+    addScalarTimeU
+    {
+        type                 addScalarTimeU;
+        functionObjectLibs   ("libaddScalarTimeU.so");
+        enabled              true;
+        writeSUfields        false;
+        outputControl        outputTime;
+        region               region0;
+        scalarFields
+        (
+            Sa
+            T
+            k
+        );
+    }
 
 SourceFiles
-
+    addScalarTimeU.C
 
 \*---------------------------------------------------------------------------*/
 
@@ -76,6 +106,12 @@ class addScalarTimeU
 
         //- list of scalar field
         wordList scalarFields_;
+
+        //- list of names of the scalarTimeU fields
+        wordList SUNames_;
+
+        //- bool to control writing. default=false
+        bool writeSUfields_;
 
     // Private Member Functions
 

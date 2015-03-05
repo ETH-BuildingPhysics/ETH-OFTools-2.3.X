@@ -50,8 +50,9 @@ Foam::addScalarTimeU::addScalarTimeU
     obr_(obr),
     active_(true),
     UName_("U"),
-    scalarFields_(dict.lookup("scalarFields"))
-//    scalarFields_()
+    scalarFields_(dict.lookup("scalarFields")),
+    SUNames_(scalarFields_.size()),
+    writeSUfields_(false)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -71,38 +72,42 @@ Foam::addScalarTimeU::addScalarTimeU
     }
 
     read(dict);
-    Info << "*** scalarFields_ = " << scalarFields_ << endl;
 
     if (active_)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
 
-        const volScalarField& Sa = mesh.lookupObject<volScalarField>("Sa");
-        const dimensionSet& SaDim = Sa.dimensions();
-        Info << "*** SaDim = " << SaDim << endl;
-
         const volVectorField& U = mesh.lookupObject<volVectorField>(UName_);
         const dimensionSet& UDim = U.dimensions();
-        Info << "*** UDim = " << UDim << endl;
 
-        volVectorField* STimeUPtr
-        (
-            new volVectorField
+        forAll (scalarFields_, i)
+        {
+            const volScalarField& S =
+                mesh.lookupObject<volScalarField>(scalarFields_[i]);
+            const dimensionSet& SDim = S.dimensions();
+
+            volVectorField* STimeUPtr
             (
-                IOobject
+                new volVectorField
                 (
-                    "SaU",
-                    mesh.time().timeName(),
+                    IOobject
+                    (
+                        SUNames_[i],
+                        mesh.time().timeName(),
+                        mesh,
+                        IOobject::NO_READ,
+                        IOobject::NO_WRITE
+                    ),
                     mesh,
-                    IOobject::NO_READ,
-                    IOobject::NO_WRITE
-                ),
-                mesh,
-                dimensionedVector("SaU", SaDim*UDim, vector::zero)
-            )
-        );
+                    dimensionedVector
+                    (
+                        SUNames_[i]+"Dim", SDim*UDim, vector::zero
+                    )
+                )
+            );
 
-        mesh.objectRegistry::store(STimeUPtr);
+            mesh.objectRegistry::store(STimeUPtr);
+        }
     }
 }
 
@@ -120,6 +125,11 @@ void Foam::addScalarTimeU::read(const dictionary& dict)
     if (active_)
     {
         UName_ = dict.lookupOrDefault<word>("UName", "U");
+        writeSUfields_ = dict.lookupOrDefault<bool>("writeSUfields", false);
+        forAll (scalarFields_, i)
+        {
+            SUNames_[i] = scalarFields_[i]+"U";
+        }
     }
 }
 
@@ -129,28 +139,21 @@ void Foam::addScalarTimeU::execute()
     if (active_)
     {
         const fvMesh& mesh = refCast<const fvMesh>(obr_);
-
         const volVectorField& U = mesh.lookupObject<volVectorField>(UName_);
 
-        const volScalarField& S = mesh.lookupObject<volScalarField>("Sa");
+        forAll (scalarFields_, i)
+        {
+            const volScalarField& S =
+                mesh.lookupObject<volScalarField>(scalarFields_[i]);
 
-//        const volTensorField gradU(fvc::grad(U));
+            volVectorField& STimeU =
+                const_cast<volVectorField&>
+                (
+                    mesh.lookupObject<volVectorField>(SUNames_[i])
+                );
 
-//        volScalarField& Q =
-//            const_cast<volScalarField&>
-//            (
-//                mesh.lookupObject<volScalarField>(type())
-//            );
-
-//        Q = 0.5*(sqr(tr(gradU)) - tr(((gradU) & (gradU))));
-
-        volVectorField& STimeU =
-            const_cast<volVectorField&>
-            (
-                mesh.lookupObject<volVectorField>("SaU")
-            );
-
-        STimeU = S*U;
+            STimeU = S*U;
+        }
     }
 }
 
@@ -172,16 +175,18 @@ void Foam::addScalarTimeU::timeSet()
 
 void Foam::addScalarTimeU::write()
 {
-    if (active_)
+    if (active_ && writeSUfields_)
     {
-        const volVectorField& STimeU =
-            obr_.lookupObject<volVectorField>("SaU");
+        Info<< type() << " " << name_ << " output:" << endl;
+        forAll (scalarFields_, i)
+        {
+            const volVectorField& STimeU =
+                obr_.lookupObject<volVectorField>(SUNames_[i]);
+            Info<< "    writing field " << STimeU.name() << endl;
 
-        Info<< type() << " " << name_ << " output:" << nl
-            << "    writing field " << STimeU.name() << nl
-            << endl;
-
-        STimeU.write();
+            STimeU.write();
+        }
+        Info << nl << endl;
     }
 }
 
