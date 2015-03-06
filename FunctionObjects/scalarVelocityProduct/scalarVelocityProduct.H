@@ -28,28 +28,28 @@ Group
     grpUtilitiesFunctionObjects
 
 Description
-    For each given scalar field Si, this function object stores the Si*U fields
+    For each given scalar field Si, this function object stores the U*Si fields
     on the mesh database for further manipulation. After averaging such fields,
-    The fields SiPrimeUPrimeMean can be calculated with the ad hoc
+    The fields UPrimeSbPrimeMean can be calculated with the scalarCovariance
     post-processing utility.
 
     Work Flow example:
         During the run:
             1. Calculate the scalar transport of Sa and Sb with the function
                object scalarTransport
-            2. Use this function object to add SaU and SbU to the mesh database
+            2. Use this function object to add USa and USb to the mesh database
                and write the if necessary.
-            3. Average SaU and SbU with the function object fieldAverage.
+            3. Average USa and USb with the function object fieldAverage.
         After the run:
-            1. Use the post-processing tool "toolName" to get SaPrimeUPrimeMean
-               and SbPrimeUPrimeMean
+            1. Use the post-processing tool "toolName" to get UPrimeSbPrimeMean
+               and UPrimeSbPrimeMean
 
     scalarVelocityProduct
     {
         type                 scalarVelocityProduct;
         functionObjectLibs   ("libscalarVelocityProduct.so");
         enabled              true;
-        writeSUfields        false;
+        writeFields        false;
         outputControl        outputTime;
         region               region0;
         scalarFields
@@ -108,10 +108,10 @@ class scalarVelocityProduct
         wordList scalarFields_;
 
         //- list of names of the scalarTimeU fields
-        wordList SUNames_;
+        wordList USNames_;
 
         //- bool to control writing. default=false
-        bool writeSUfields_;
+        bool writeFields_;
 
     // Private Member Functions
 

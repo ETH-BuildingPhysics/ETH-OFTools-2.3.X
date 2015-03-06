@@ -51,8 +51,8 @@ Foam::scalarVelocityProduct::scalarVelocityProduct
     active_(true),
     UName_("U"),
     scalarFields_(dict.lookup("scalarFields")),
-    SUNames_(scalarFields_.size()),
-    writeSUfields_(false)
+    USNames_(scalarFields_.size()),
+    writeFields_(false)
 {
     // Check if the available mesh is an fvMesh, otherwise deactivate
     if (!isA<fvMesh>(obr_))
@@ -86,13 +86,13 @@ Foam::scalarVelocityProduct::scalarVelocityProduct
                 mesh.lookupObject<volScalarField>(scalarFields_[i]);
             const dimensionSet& SDim = S.dimensions();
 
-            volVectorField* STimeUPtr
+            volVectorField* USproductPtr
             (
                 new volVectorField
                 (
                     IOobject
                     (
-                        SUNames_[i],
+                        USNames_[i],
                         mesh.time().timeName(),
                         mesh,
                         IOobject::NO_READ,
@@ -101,12 +101,12 @@ Foam::scalarVelocityProduct::scalarVelocityProduct
                     mesh,
                     dimensionedVector
                     (
-                        SUNames_[i]+"Dim", SDim*UDim, vector::zero
+                        USNames_[i]+"Dim", UDim*SDim, vector::zero
                     )
                 )
             );
 
-            mesh.objectRegistry::store(STimeUPtr);
+            mesh.objectRegistry::store(USproductPtr);
         }
     }
 }
@@ -125,10 +125,10 @@ void Foam::scalarVelocityProduct::read(const dictionary& dict)
     if (active_)
     {
         UName_ = dict.lookupOrDefault<word>("UName", "U");
-        writeSUfields_ = dict.lookupOrDefault<bool>("writeSUfields", false);
+        writeFields_ = dict.lookupOrDefault<bool>("writeFields", false);
         forAll (scalarFields_, i)
         {
-            SUNames_[i] = scalarFields_[i]+"U";
+            USNames_[i] = "U"+scalarFields_[i];
         }
     }
 }
@@ -146,13 +146,13 @@ void Foam::scalarVelocityProduct::execute()
             const volScalarField& S =
                 mesh.lookupObject<volScalarField>(scalarFields_[i]);
 
-            volVectorField& STimeU =
+            volVectorField& USproduct =
                 const_cast<volVectorField&>
                 (
-                    mesh.lookupObject<volVectorField>(SUNames_[i])
+                    mesh.lookupObject<volVectorField>(USNames_[i])
                 );
 
-            STimeU = S*U;
+            USproduct = U*S;
         }
     }
 }
@@ -175,16 +175,16 @@ void Foam::scalarVelocityProduct::timeSet()
 
 void Foam::scalarVelocityProduct::write()
 {
-    if (active_ && writeSUfields_)
+    if (active_ && writeFields_)
     {
         Info<< type() << " " << name_ << " output:" << endl;
         forAll (scalarFields_, i)
         {
-            const volVectorField& STimeU =
-                obr_.lookupObject<volVectorField>(SUNames_[i]);
-            Info<< "    writing field " << STimeU.name() << endl;
+            const volVectorField& USproduct =
+                obr_.lookupObject<volVectorField>(USNames_[i]);
+            Info<< "    writing field " << USproduct.name() << endl;
 
-            STimeU.write();
+            USproduct.write();
         }
         Info << nl << endl;
     }
