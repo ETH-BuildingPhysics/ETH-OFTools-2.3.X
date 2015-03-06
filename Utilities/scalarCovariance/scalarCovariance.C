@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------* \
+/*---------------------------------------------------------------------------*\
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
@@ -25,47 +25,75 @@ Application
     scalarCovariance
 
 Description
-    Calculates and writes <u's'> = <us> - <u><s>
+    For each scalar field Si, Calculates and writes <u'si'> = <USi> - <U><Si>.
+    Si can be any volScalarField: passive tracer, T, k, nuSgs...
+
+    The list of scalar field Si can be specified in transportProperty as a list:
+    scalars (S1 S2 ... Si ... Sn), Or as an argument:
+    scalarConvariance -scalars "(S1 S2 ... Si ... Sn)".
+
+    For any scalar field Si, the following fields must exist: UMean, SiMean,
+    USiMean. All those fields can be generated in run-time with the function
+    objects "scalarVelocityProduct" (for USi) and "fieldAverage"
+    (for the means).
 
 \*---------------------------------------------------------------------------*/
 
-#include "calc.H"
-#include "fvc.H"
+#include "fvCFD.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
+int main(int argc, char *argv[])
 {
-	bool writeResults = !args.optionFound("noWrite");
+    timeSelector::addOptions();
+    #include "addRegionOption.H"
+    Foam::argList::addOption
+    (
+        "scalars",
+        "list",
+        "specify a list of scalar. \"(S1..Si..Sn)\" or Si for a single scalar."
+    );
+    #include "setRootCase.H"
+    #include "createTime.H"
+    instantList timeDirs = timeSelector::select0(runTime, args);
+    #include "createNamedMesh.H"
 
-	const word EXT_MEAN = "Mean";
-	const word EXT_PRIME = "Prime";
-	const word EXT_PRIME2MEAN = "Prime2Mean";
+    const word EXT_MEAN = "Mean";
+    const word EXT_PRIME = "Prime";
+    const word EXT_PRIME2MEAN = "Prime2Mean";
 
-	#include "createFields.H"
+    forAll(timeDirs, timeI)
+    {
+        runTime.setTime(timeDirs[timeI], timeI);
 
-	forAll(names, i)
+        Info<< "Time = " << runTime.timeName() << endl;
+
+        #include "createFields.H"
+
+        forAll(names, i)
         {
-		Info<< "    Calculating "+names[i] << endl;
-		volVectorField UsPrime
-		(
-		    IOobject
-		    (
-			"U"+EXT_PRIME+names[i]+EXT_PRIME+EXT_MEAN,
-			runTime.timeName(),
-			mesh,
-			IOobject::NO_READ
-		    ),
-		    usMean[i] - (UMean * sMean[i])
-		);
+            Info << "Calculating field "
+                 << "U"+EXT_PRIME+names[i]+EXT_PRIME+EXT_MEAN << endl;
 
-		if (writeResults)
-		{
-		    UsPrime.write();
-		}
-	}
+            volVectorField UsPrime
+            (
+                IOobject
+                (
+                    "U"+EXT_PRIME+names[i]+EXT_PRIME+EXT_MEAN,
+                    runTime.timeName(),
+                    mesh,
+                    IOobject::NO_READ
+                ),
+                usMean[i] - (UMean * sMean[i])
+            );
 
-	Info<< "\nEnd\n" << endl;
+            UsPrime.write();
+        }
+    }
+
+    Info<< nl << "End" << endl;
+
+    return 0;
 }
 
 

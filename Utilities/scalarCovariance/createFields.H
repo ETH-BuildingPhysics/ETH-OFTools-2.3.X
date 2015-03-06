@@ -1,4 +1,4 @@
-    Info<< "Reading field UMean\n" << endl;
+    Info<< "\nReading field UMean\n" << endl;
     volVectorField UMean
     (
         IOobject
@@ -11,30 +11,36 @@
         ),
         mesh
     );
+    
+    wordList names;
+    
+    if (args.optionFound("scalars")==true)
+    {
+        names = args.optionReadList<word>("scalars");
+    }
+    else
+    {
+        Info<< "Reading transportProperties\n" << endl;
 
-    Info<< "Reading transportProperties\n" << endl;
-
-    IOdictionary transportProperties
-    (
-        IOobject
+        IOdictionary transportProperties
         (
-            "transportProperties",
-            runTime.constant(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE
-        )
-    );
+            IOobject
+            (
+                "transportProperties",
+                runTime.constant(),
+                mesh,
+                IOobject::MUST_READ,
+                IOobject::NO_WRITE
+            )
+        );
 
-
-
-    wordList names(transportProperties.lookup("scalars"));
+        wordList tmp(transportProperties.lookup("scalars"));
+        names = tmp;
+    }
 
     PtrList<volScalarField> sMean(names.size());
     PtrList<volVectorField> usMean(names.size());
 
-    
-    Info<< "Creating Mean Scalars\n" << endl;
     forAll(sMean, i)
     {
         IOobject header
@@ -48,6 +54,7 @@
         // check if field exists and can be read
         if (header.headerOk())
         {
+            Info<< "Reading field " << names[i]+EXT_MEAN << endl;
             sMean.set
             (
                 i,
@@ -67,6 +74,8 @@
         }
     }
 
+    Info << endl;
+
     forAll(usMean, i)
     {
         IOobject header
@@ -80,6 +89,7 @@
         // check if field exists and can be read
         if (header.headerOk())
         {
+            Info<< "Reading field " << "U"+names[i]+EXT_MEAN << endl;
             usMean.set
             (
                 i,
@@ -98,3 +108,5 @@
             );
         }
     }
+
+    Info << endl;
