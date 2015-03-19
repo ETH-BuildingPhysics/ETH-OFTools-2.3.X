@@ -126,7 +126,7 @@ inflowGenerator
     mapperVP_Ptr_(NULL),
     mapperIV_Ptr_(NULL),
     mapperIP_Ptr_(NULL),
-    perturb_(dict.lookupOrDefault("perturb", 1e-5)),
+    perturb_(dict.lookupOrDefault("perturb", 1e-6)),
     Lund_(p.size(), pTraits<tensor>::zero),
     ranGen(label(time(0))),
     cleanRestart_(false),
@@ -612,8 +612,30 @@ void Foam::inflowGenerator::initData()
         get2DFilterCoeff_New(filterCoeff_yz_w_Proc[Pstream::myProcNo()][subI],NLyField_[I].component(2), NLzField_[I].component(2));
     }
 	
-    Info << filterCoeff_yz_u_Proc[Pstream::myProcNo()][10];
+    //Info << filterCoeff_yz_u_Proc[Pstream::myProcNo()][10];
     //Info << "done calculating filter coefficients" << endl;
+    
+    if(debug)
+    {
+        fileName rootPath(this->db().time().constant()/"boundaryData"/this->patch().name());
+        OFstream(rootPath/"dbg_pointsInput")() << samplePointsField;
+        OFstream(rootPath/"dbg_pointsVirtual")() << virualGridPoints_;
+        OFstream(rootPath/"dbg_pointsPatch")() << this->patch().Cf();
+
+        OFstream(rootPath/"dbg_LxFullField_")() << LxFullField_;
+        OFstream(rootPath/"dbg_LyFullField_")() << LyFullField_;
+        OFstream(rootPath/"dbg_LzFullField_")() << LzFullField_;
+        OFstream(rootPath/"dbg_LxField_")() << LxField_;
+        OFstream(rootPath/"dbg_LyField_")() << LyField_;
+        OFstream(rootPath/"dbg_LzField_")() << LzField_;
+        OFstream(rootPath/"dbg_NLxField_")() << NLxField_;
+        OFstream(rootPath/"dbg_NLyField_")() << NLyField_;
+        OFstream(rootPath/"dbg_NLzField_")() << NLzField_;
+
+        OFstream(rootPath/"dbg_ReStress")() << ReStress;
+        OFstream(rootPath/"dbg_UMean")() << UMean;
+
+    }
 }
 
 
@@ -655,22 +677,30 @@ void Foam::inflowGenerator::getRandomField()
 //1d filter coeff, new format
 void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
 {
-    double sumx = 0.0;
-    label NLX2P1_x=2*NLX_x+1;
 
-    b_x.setSize(NLX2P1_x);
-
-    for (int j=0; j<NLX2P1_x; j++)
+    if (NLX_x==0)
     {
-        //sumx += Foam::sqr(Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x))));
-        sumx += Foam::exp(-4.0*j/NLX_x);
+        b_x.setSize(1);
+        b_x[0]=0.0;
     }
-    sumx = Foam::sqrt(sumx);
-
-    for (int j=0; j<NLX2P1_x; j++)
+    else
     {
-        //b_x[j] = Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x)))/sumx;
-        b_x[j] = Foam::exp(-2.0*j/NLX_x)/sumx;
+        double sumx = 0.0;
+        label NLX2P1_x=2*NLX_x+1;
+        b_x.setSize(NLX2P1_x);
+
+        for (int j=0; j<NLX2P1_x; j++)
+        {
+            //sumx += Foam::sqr(Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x))));
+            sumx += Foam::exp(-4.0*j/NLX_x);
+        }
+        sumx = Foam::sqrt(sumx);
+
+        for (int j=0; j<NLX2P1_x; j++)
+        {
+            //b_x[j] = Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x)))/sumx;
+            b_x[j] = Foam::exp(-2.0*j/NLX_x)/sumx;
+        }
     }
 }
 
@@ -1001,14 +1031,28 @@ void Foam::inflowGenerator::updateCoeffs()
 void Foam::inflowGenerator::write(Ostream& os) const
 {
     fvPatchField<vector>::write(os);
-    os.writeKeyword("origin") << origin_ << token::END_STATEMENT << nl;
-    os.writeKeyword("NY") << NY_ << token::END_STATEMENT << nl;
-    os.writeKeyword("NZ") << NZ_ << token::END_STATEMENT << nl;
-    os.writeKeyword("SizeY") << LY_ << token::END_STATEMENT << nl;
-    os.writeKeyword("SizeZ") << LZ_ << token::END_STATEMENT << nl;
+    os.writeKeyword("perturb") << perturb_ << token::END_STATEMENT << nl;
+    //os.writeKeyword("origin") << origin_ << token::END_STATEMENT << nl;
+    //os.writeKeyword("NY") << NY_ << token::END_STATEMENT << nl;
+    //os.writeKeyword("NZ") << NZ_ << token::END_STATEMENT << nl;
+    //os.writeKeyword("SizeY") << LY_ << token::END_STATEMENT << nl;
+    //os.writeKeyword("SizeZ") << LZ_ << token::END_STATEMENT << nl;
     writeEntry("value", os);
     if (isRestart_)
             uFluctTemporal.writeEntry("uFluctTemporal", os);
+
+    // debug: write the interpolated source field if required.
+    //if (dict.lookupOrDefault("writeSourceFields",false)==true)
+
+    if(debug)
+    {
+        fileName rootPath(this->db().time().timePath());
+        
+        OFstream(rootPath/"dbg_virtualFilteredField")() << virtualFilteredField_;
+        OFstream(rootPath/"dbg_uFluctFiltered")() << uFluctFiltered;
+        OFstream(rootPath/"dbg_uFluctFinal")() << uFluctFinal;
+
+    }
 }
 
 void Foam::inflowGenerator::autoMap(const fvPatchFieldMapper& m)
