@@ -1,0 +1,31 @@
+#!/bin/sh
+
+mkdir -p output
+
+# preProcessing
+echo "Start preProcessing"
+echo "  run generateGrid.sh"
+./generateGrid.sh
+# echo "   run topoSet"
+# topoSet -dict system/topoSetDict_scalarTransport > output/topoSet_scalarTransport.out 2>&1
+echo "   run decomposePar"
+decomposePar -force > output/decomposePar.out 2>&1
+
+# solve case
+echo "Start solver"
+echo "   run pimpleFoam"
+echo "   - very long LES run! Run it on a cluster, or reduce the endTime."
+mpirun -np 4 pimpleFoam -parallel> output/solver.out 2>&1
+
+# postProcessing
+# echo "Start postProcessing"
+# echo "   run reconstructPar"
+# reconstructPar -latestTime > output/reconstructPar.out 2>&1
+# echo "   run resLES"
+# resLES -latestTime > output/resLES.out 2>&1
+# echo "   run yPlusMeanLES"
+# yPlusMeanLES -latestTime > output/yPlusMeanLES.out 2>&1
+# echo "   run scalarCovariance"
+# scalarCovariance -scalars Sla -latestTime > output/scalarCovariance.out 2>&1
+
+

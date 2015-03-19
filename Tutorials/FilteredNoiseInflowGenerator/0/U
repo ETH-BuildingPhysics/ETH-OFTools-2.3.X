@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (1 0 0);
+
+boundaryField
+{
+//     inlet
+//     {
+//         type                      decayingTurbulenceInflowGeneratorMod;
+//         direction                 1;
+//         writeSourceFields         true;
+//         robustLundTransformation  false;
+//         LField                    uniform 0.003;          // placeholder
+//         refField                  uniform (2 0 0);        // placeholder
+//         RField                    uniform (0.07 -0.025 -0.005 0.035 0.001 0.055);  // placeholder
+//         value                     uniform (2 0 0);        // placeholder
+//     }
+    
+    inlet
+    {
+        type            filteredNoiseInflowGenerator;
+        value           uniform ( 0 0 0 ); // placeholder
+    }
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform (0 0 0);
+        value           uniform (0 0 0);
+    }
+    front
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    heatedplate01
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    heatedplate02
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    heatedplate03
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    rear
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    top
+    {
+        type           symmetryPlane;
+    }
+    side1
+    {
+        type            cyclic;
+    }
+    side2
+    {
+        type            cyclic;
+    }
+}
+
+// ************************************************************************* //

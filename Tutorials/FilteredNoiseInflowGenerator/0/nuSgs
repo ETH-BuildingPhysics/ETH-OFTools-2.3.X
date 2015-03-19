@@ -1,0 +1,65 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      nuSgs;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -1 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    inlet
+    {
+        type            zeroGradient;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    front
+    {
+        type            zeroGradient;
+    }
+    heatedplate01
+    {
+        type            zeroGradient;
+    }
+    heatedplate02
+    {
+        type            zeroGradient;
+    }
+    heatedplate03
+    {
+        type            zeroGradient;
+    }
+    rear
+    {
+        type            zeroGradient;
+    }
+    top
+    {
+        type           symmetryPlane;
+    }
+    side1
+    {
+        type            cyclic;
+    }
+    side2
+    {
+        type            cyclic;
+    }
+}
+
+// ************************************************************************* //

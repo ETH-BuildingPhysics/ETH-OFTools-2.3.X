@@ -161,7 +161,7 @@ parser.add_argument('-vl',
                     required=False,
                     nargs='+',
                     default=list(),
-                    help='Specify variables to include in the xdmf file.'
+                    help='Specify variables to include in the xdmf file. If not specified, all variable are included'
                     )
 
 args = parser.parse_args()
