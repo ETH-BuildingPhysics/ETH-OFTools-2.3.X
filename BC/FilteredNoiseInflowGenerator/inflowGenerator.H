@@ -31,7 +31,7 @@ Description
 
 
 Note
-
+    correlationShape (string) can be exp or doubleExp or gaussian
 
 SeeAlso
     Foam::fixedValueFvPatchField
@@ -144,6 +144,8 @@ class inflowGenerator
     bool cleanRestart_;
     bool isInitialized_;
     bool isRestart_;
+
+    word correlationShape_;
 	
    public:
 

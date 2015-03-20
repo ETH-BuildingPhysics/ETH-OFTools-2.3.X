@@ -32,6 +32,7 @@ License
 #include "OFstream.H"
 #include "FieldFunctions.H"
 #include "boundBox.H"
+#include "mathematicalConstants.H"
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -65,7 +66,8 @@ inflowGenerator
     ranGen(label(time(0))),
     cleanRestart_(false),
     isInitialized_(false),
-    isRestart_(false)
+    isRestart_(false),
+    correlationShape_("exp")
 {}
 
 
@@ -101,7 +103,8 @@ inflowGenerator
     ranGen(label(time(0))),
     cleanRestart_(ptf.cleanRestart_),
     isInitialized_(ptf.isInitialized_),
-    isRestart_(ptf.isRestart_)
+    isRestart_(ptf.isRestart_),
+    correlationShape_(ptf.correlationShape_)
 {}
 
 
@@ -131,7 +134,8 @@ inflowGenerator
     ranGen(label(time(0))),
     cleanRestart_(false),
     isInitialized_(false),
-    isRestart_(false)
+    isRestart_(false),
+    correlationShape_(dict.lookupOrDefault<word>("correlationShape", "exp"))
 {
     //Info << "Foam::inflowGenerator dict constructor" << endl;
 
@@ -157,7 +161,7 @@ inflowGenerator
         uFluctTemporal = vectorField("uFluctTemporal", dict, p.size());
 
     }
-
+    Info << "Correlation: "<< correlationShape_ << endl;
     //Info << "constructor finished" << endl;
 }
 
@@ -191,7 +195,8 @@ inflowGenerator
     ranGen(ptf.ranGen),
     cleanRestart_(ptf.cleanRestart_),
     isInitialized_(ptf.isInitialized_),
-    isRestart_(ptf.isRestart_)
+    isRestart_(ptf.isRestart_),
+    correlationShape_(ptf.correlationShape_)
 {}
 
 
@@ -225,7 +230,8 @@ inflowGenerator
     ranGen(ptf.ranGen),
     cleanRestart_(ptf.cleanRestart_),
     isInitialized_(ptf.isInitialized_),
-    isRestart_(ptf.isRestart_)
+    isRestart_(ptf.isRestart_),
+    correlationShape_(ptf.correlationShape_)
 {}
 
 void Foam::inflowGenerator::autoSizeGrid()
@@ -677,7 +683,7 @@ void Foam::inflowGenerator::getRandomField()
 //1d filter coeff, new format
 void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
 {
-
+    const scalar pi = constant::mathematical::pi;
     if (NLX_x==0)
     {
         b_x.setSize(1);
@@ -691,15 +697,27 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
 
         for (int j=0; j<NLX2P1_x; j++)
         {
-            //sumx += Foam::sqr(Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x))));
-            sumx += Foam::exp(-4.0*j/NLX_x);
+            if (correlationShape_=="exp")
+                sumx += Foam::exp(-2.0*j/NLX_x);
+            else if (correlationShape_=="doubleExp")
+                sumx += Foam::exp(-4.0*fabs((j-2.0*NLX_x)/(NLX_x)));
+            else if (correlationShape_=="gaussian")
+                sumx += Foam::exp(-2.0*pi*Foam::sqr(scalar(j-2.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))));
+            else
+                Info << "correlationShape" << correlationShape_ << "does not exist (ERROR)" << endl;
         }
         sumx = Foam::sqrt(sumx);
 
         for (int j=0; j<NLX2P1_x; j++)
         {
-            //b_x[j] = Foam::exp(-2.0*fabs((j-NLX_x)/(NLX_x)))/sumx;
-            b_x[j] = Foam::exp(-2.0*j/NLX_x)/sumx;
+            if (correlationShape_=="exp")
+                b_x[j] = Foam::exp(-1.0*j/NLX_x)/sumx;
+            else if (correlationShape_=="doubleExp")
+                b_x[j] = Foam::exp(-2.0*fabs((j-2.0*NLX_x)/(NLX_x)))/sumx;
+            else if (correlationShape_=="gaussian")
+                b_x[j]= Foam::exp(-pi*Foam::sqr(scalar(j-2.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))))/sumx;
+            else
+                Info << "correlationShape" << correlationShape_ << "does not exist (ERROR)" << endl;
         }
     }
 }
@@ -1032,6 +1050,7 @@ void Foam::inflowGenerator::write(Ostream& os) const
 {
     fvPatchField<vector>::write(os);
     os.writeKeyword("perturb") << perturb_ << token::END_STATEMENT << nl;
+    os.writeKeyword("correlationShape") << correlationShape_ << token::END_STATEMENT << nl;
     //os.writeKeyword("origin") << origin_ << token::END_STATEMENT << nl;
     //os.writeKeyword("NY") << NY_ << token::END_STATEMENT << nl;
     //os.writeKeyword("NZ") << NZ_ << token::END_STATEMENT << nl;
