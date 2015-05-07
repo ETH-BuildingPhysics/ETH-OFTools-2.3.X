@@ -1,4 +1,5 @@
 EXE_INC = \
+    -I$(LIB_SRC)/postProcessing/postCalc \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/turbulenceModels \
     -I$(LIB_SRC)/turbulenceModels/incompressible/LES/LESModel \
@@ -7,6 +8,7 @@ EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude
 
 EXE_LIBS = \
+    $(FOAM_LIBBIN)/postCalc.o \
     -lincompressibleLESModels \
     -lincompressibleTransportModels \
     -lfiniteVolume \

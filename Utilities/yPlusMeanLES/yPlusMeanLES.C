@@ -30,6 +30,7 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "calc.H"
 #include "fvCFD.H"
 #include "incompressible/singlePhaseTransportModel/singlePhaseTransportModel.H"
 #include "LESModel.H"
@@ -39,121 +40,101 @@ Description
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-int main(int argc, char *argv[])
+void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
 {
-    timeSelector::addOptions();
-    #include "setRootCase.H"
-    #include "createTime.H"
-    instantList timeDirs = timeSelector::select0(runTime, args);
-    #include "createMesh.H"
+    Info<< "Calculating wall distance\n" << endl;
+    wallDist y(mesh, true);
+    Info<< "Writing wall distance to field "
+        << y.name() << nl << endl;
+    y.write();
 
-    forAll(timeDirs, timeI)
-    {
-        runTime.setTime(timeDirs[timeI], timeI);
-        Info<< "Time = " << runTime.timeName() << endl;
-        fvMesh::readUpdateState state = mesh.readUpdate();
-
-        // Wall distance
-        if (timeI == 0 || state != fvMesh::UNCHANGED)
-        {
-            Info<< "Calculating wall distance\n" << endl;
-            wallDist y(mesh, true);
-            Info<< "Writing wall distance to field "
-                << y.name() << nl << endl;
-            y.write();
-        }
-
-
-        volScalarField yPlusMean
+    volScalarField yPlusMean
+    (
+        IOobject
         (
-            IOobject
-            (
-                "yPlusMean",
-                runTime.timeName(),
-                mesh,
-                IOobject::NO_READ,
-                IOobject::NO_WRITE
-            ),
+            "yPlusMean",
+            runTime.timeName(),
             mesh,
-            dimensionedScalar("yPlusMean", dimless, 0.0)
-        );
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar("yPlusMean", dimless, 0.0)
+    );
 
 
-        Info<< "Reading field UMean\n" << endl;
-        volVectorField UMean
+    Info<< "Reading field UMean\n" << endl;
+    volVectorField UMean
+    (
+        IOobject
         (
-            IOobject
-            (
-                "UMean",
-                runTime.timeName(),
-                mesh,
-                IOobject::MUST_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh
-        );
+            "UMean",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh
+    );
 
-        Info<< "Reading field nuSgsMean\n" << endl;
-        volScalarField nuSgsMean
+    Info<< "Reading field nuSgsMean\n" << endl;
+    volScalarField nuSgsMean
+    (
+        IOobject
         (
-            IOobject
-            (
-                "nuSgsMean",
-                runTime.timeName(),
-                mesh,
-                IOobject::MUST_READ,
-                IOobject::NO_WRITE
-            ),
-            mesh
-        );
+            "nuSgsMean",
+            runTime.timeName(),
+            mesh,
+            IOobject::MUST_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh
+    );
 
-        #include "createPhiMean.H"
+    #include "createPhiMean.H"
 
-        singlePhaseTransportModel laminarTransport(UMean, phiMean);
+    singlePhaseTransportModel laminarTransport(UMean, phiMean);
 
-        autoPtr<incompressible::LESModel> sgsModel
-        (
-            incompressible::LESModel::New(UMean, phiMean, laminarTransport)
-        );
-        const volScalarField nuLam(sgsModel->nu());
-        volScalarField nuEff(nuLam+nuSgsMean);
+    autoPtr<incompressible::LESModel> sgsModel
+    (
+        incompressible::LESModel::New(UMean, phiMean, laminarTransport)
+    );
+    const volScalarField nuLam(sgsModel->nu());
+    volScalarField nuEff(nuLam+nuSgsMean);
 
-         volScalarField::GeometricBoundaryField d = nearWallDist(mesh).y();
-        const fvPatchList& patches = mesh.boundary();
+        volScalarField::GeometricBoundaryField d = nearWallDist(mesh).y();
+    const fvPatchList& patches = mesh.boundary();
 
 
-        forAll(patches, patchi)
+    forAll(patches, patchi)
+    {
+        const fvPatch& currPatch = patches[patchi];
+
+        if (isA<wallFvPatch>(currPatch))
         {
-            const fvPatch& currPatch = patches[patchi];
+            yPlusMean.boundaryField()[patchi] =
+                d[patchi]
+                *sqrt
+                (
+                    nuEff.boundaryField()[patchi]
+                    *mag(UMean.boundaryField()[patchi].snGrad())
+                )
+                /nuLam.boundaryField()[patchi];
+            const scalarField& Yp = yPlusMean.boundaryField()[patchi];
 
-            if (isA<wallFvPatch>(currPatch))
-            {
-                yPlusMean.boundaryField()[patchi] =
-                    d[patchi]
-                   *sqrt
-                    (
-                        nuEff.boundaryField()[patchi]
-                       *mag(UMean.boundaryField()[patchi].snGrad())
-                    )
-                   /nuLam.boundaryField()[patchi];
-                const scalarField& Yp = yPlusMean.boundaryField()[patchi];
-
-                Info<< "Patch " << patchi
-                    << " named " << currPatch.name()
-                    << " y+ : min: " << gMin(Yp) << " max: " << gMax(Yp)
-                    << " average: " << gAverage(Yp) << nl << endl;
-            }
+            Info<< "Patch " << patchi
+                << " named " << currPatch.name()
+                << " y+ : min: " << gMin(Yp) << " max: " << gMax(Yp)
+                << " average: " << gAverage(Yp) << nl << endl;
         }
-
-        Info<< "Writing yPlusMean to field "
-            << yPlusMean.name() << nl << endl;
-
-        yPlusMean.write();
     }
 
-    Info<< "End\n" << endl;
+    Info<< "Writing yPlusMean to field "
+        << yPlusMean.name() << nl << endl;
 
-    return 0;
+    yPlusMean.write();
+
+    Info<< "End\n" << endl;
 }
 
 
