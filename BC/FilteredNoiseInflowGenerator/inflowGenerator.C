@@ -700,9 +700,9 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
             if (correlationShape_=="exp")
                 sumx += Foam::exp(-2.0*j/NLX_x);
             else if (correlationShape_=="doubleExp")
-                sumx += Foam::exp(-4.0*fabs((j-2.0*NLX_x)/(NLX_x)));
+                sumx += Foam::exp(-4.0*fabs((j-1.0*NLX_x)/(NLX_x)));
             else if (correlationShape_=="gaussian")
-                sumx += Foam::exp(-2.0*pi*Foam::sqr(scalar(j-2.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))));
+                sumx += Foam::exp(-2.0*pi*Foam::sqr(scalar(j-1.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))));
             else
                 Info << "correlationShape" << correlationShape_ << "does not exist (ERROR)" << endl;
         }
@@ -713,9 +713,9 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
             if (correlationShape_=="exp")
                 b_x[j] = Foam::exp(-1.0*j/NLX_x)/sumx;
             else if (correlationShape_=="doubleExp")
-                b_x[j] = Foam::exp(-2.0*fabs((j-2.0*NLX_x)/(NLX_x)))/sumx;
+                b_x[j] = Foam::exp(-2.0*fabs((j-1.0*NLX_x)/(NLX_x)))/sumx;
             else if (correlationShape_=="gaussian")
-                b_x[j]= Foam::exp(-pi*Foam::sqr(scalar(j-2.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))))/sumx;
+                b_x[j]= Foam::exp(-pi*Foam::sqr(scalar(j-1.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))))/sumx;
             else
                 Info << "correlationShape" << correlationShape_ << "does not exist (ERROR)" << endl;
         }
