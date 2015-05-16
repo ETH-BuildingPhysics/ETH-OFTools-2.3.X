@@ -139,7 +139,15 @@ class inflowGenerator
     labelList yindices_;
     labelList zindices_;
 
-
+    //filter kernel factor (multiple of length scale)
+    label nfK_;
+    label zOffsetRnd_u_;
+    label yOffsetRnd_u_;
+    label zOffsetRnd_v_;
+    label yOffsetRnd_v_;
+    label zOffsetRnd_w_;
+    label yOffsetRnd_w_;
+    
 
     bool cleanRestart_;
     bool isInitialized_;

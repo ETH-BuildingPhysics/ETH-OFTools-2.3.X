@@ -236,7 +236,16 @@ inflowGenerator
 
 void Foam::inflowGenerator::autoSizeGrid()
 {
-
+    /*
+    gets the bounding box of the inlet patch cell centers, and computes the virtual grid 
+    spacing using the sqrt of the smallest cell size.
+    
+    origin_     : min. coordinates of all inlet faces
+    dy_ = dz_   : virtual grid spacing
+    NY_         : number of grid points in y direction
+    NZ_         : number of grid points in z direction
+    */
+    
     boundBox localBb(patch().Cf());
     //Info << localBb << endl;
     origin_ = localBb.min();
@@ -247,11 +256,8 @@ void Foam::inflowGenerator::autoSizeGrid()
     smallestFace=gMin(patch().magSf());
     //Info << "cell dy: "<< Foam::sqrt(smallestFace) << endl;
     scalar dx=Foam::sqrt(smallestFace);
-    origin_.component(1)=origin_.component(1);
-    origin_.component(2)=origin_.component(2);
-    //LY_=LY_;
-    //LZ_=LZ_;
 
+    //same grid spacing for y and z direction
     NY_=LY_/dx+1;
     NZ_=LZ_/dx+1;
 
@@ -259,17 +265,7 @@ void Foam::inflowGenerator::autoSizeGrid()
     dz_=dx;
     Info << "Virtual grid with origin: " << origin_ << " and nr. of points Y:"<< NY_<<" Z: " << NZ_ << endl;
     Info << "Y coordinate:"<< origin_.component(vector::Y)+NY_*dy_<<" Z coordinate: " << origin_.component(vector::Z)+NZ_*dz_ << endl;
-    /*
-    int numsf = 0;
 
-    forAll(sf, I)
-    {
-        if (sf[I] > LField_[I]*LField_[I])
-        numsf++;
-    }
-
-    if (numsf > 0)
-        Pout<<"Warning: there are "<<numsf<<" inlet cells (out of "<<patch().size()<<") where the integral length is smaller than the cell size."<<endl;*/
 }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
@@ -281,15 +277,9 @@ void Foam::inflowGenerator::initData()
     //automatically size virtual grid
     autoSizeGrid();
 
-    //NY * NZ
-    //dy_ = LY_/NY_; // grid size in the y-dir of the virtual uniform mesh
-    //dz_ = LZ_/NZ_; // grid size in the z-dir of the virtual uniform mesh
-
     Info << "Virtual grid spacing dy: " << dy_ << " dz: " << dz_ << endl;
 
-    //perturb_=1e-5;//dy_/2;
-
-    //create coordinates of virtual grid
+    //create and store coordinates of virtual grid
     virualGridPoints_.setSize(NY_*NZ_);
     for(int z=0;z<NZ_;z++)
     {
@@ -298,12 +288,10 @@ void Foam::inflowGenerator::initData()
             virualGridPoints_[get1DIndex(y, z, NZ_)] = vector(origin_.component(vector::X),origin_.component(vector::Y)+y*dy_,origin_.component(vector::Z)+z*dz_);
         }
     }
-    //Info<< virualGridPoints_ << endl;
 
     virtualFilteredField_.setSize(NY_*NZ_,vector::zero);
 
-    //mapping of indices for parallel processing
-
+    //store mapping of indices from 1D list to 2D array for the virtual grid.
     yindices_.setSize(virtualFilteredField_.size(),0);
     zindices_.setSize(virtualFilteredField_.size(),0);
     forAll(virtualFilteredField_,I)
@@ -311,6 +299,8 @@ void Foam::inflowGenerator::initData()
         get2DIndex(I, yindices_[I], zindices_[I], NZ_);
     }
 
+    //determine how many virtual grid points are assigned to one processor. If nr. virtual points is not a multiple of nr. processors,
+    //the last processor will have less than others.
     indicesPerProc_ = 0;
     if(Pstream::master())
     {
@@ -469,6 +459,7 @@ void Foam::inflowGenerator::initData()
             FatalErrorIn("inflowGenerator::")<< "Some RMS in input file R are negative"<<abort(FatalError);
     }
 
+    //fill the lund tensor array
     Lund_.replace(tensor::XX, sqrt(ReStress.component(symmTensor::XX)));
     Lund_.replace(tensor::YX, ReStress.component(symmTensor::XY)/Lund_.component(tensor::XX));
     Lund_.replace(tensor::ZX, ReStress.component(symmTensor::XZ)/Lund_.component(tensor::XX));
@@ -513,11 +504,11 @@ void Foam::inflowGenerator::initData()
 
     //Info << "Foam::inflowGenerator LxFullField_ interpolated" << endl;
 
-    //convert length scale to grid points
+    //convert length scale to virtual grid points
     NLyField_.setSize(LyField_.size());
     NLzField_.setSize(LzField_.size());
 
-    NLxField_.setSize(LxField_.size());
+    
 
     forAll(LyField_, I)
     {
@@ -525,6 +516,8 @@ void Foam::inflowGenerator::initData()
         NLzField_[I]=vector(round(LzField_[I].component(0)/dz_),round(LzField_[I].component(1)/dz_),round(LzField_[I].component(2)/dz_));
     }
 
+    //convert x-length scale to timestep-scale (using frozen turbulence assumption)
+    NLxField_.setSize(LxField_.size());
     scalar dt =  db().time().deltaT().value();
 
     forAll(LxField_, I)
@@ -542,39 +535,41 @@ void Foam::inflowGenerator::initData()
         NLxField_[I]=labelVector(nx,ny,nz);
     }
 
-
+    //For current processor, get start and end index in virtual list.
     label start=Pstream::myProcNo()*indicesPerProc_;
     label size=indicesPerProc_;
+    //if last processor, size can be smaller than indicesPerProc_
     if ((start+size)>virtualFilteredField_.size())
     {
         size=virtualFilteredField_.size()-start;
     }
+    labelListList procIdx; //dummy list with correct number of indices for each proc. Can be used to loop over indices per proc.
+    procIdx.setSize(Pstream::nProcs());
+    procIdx[Pstream::myProcNo()].setSize(size,0);
 
     //Pout << "start: " << start << " size: " << size << endl;
-
+    
+    //initialize with number of processors
     filterCoeff_yz_u_Proc.setSize(Pstream::nProcs());
     filterCoeff_yz_v_Proc.setSize(Pstream::nProcs());
     filterCoeff_yz_w_Proc.setSize(Pstream::nProcs());
 
-    labelListList procIdx;
-    procIdx.setSize(Pstream::nProcs());
-    procIdx[Pstream::myProcNo()].setSize(size,0);
-
+    //only fill element of current proc
     filterCoeff_yz_u_Proc[Pstream::myProcNo()].setSize(size);
     filterCoeff_yz_v_Proc[Pstream::myProcNo()].setSize(size);
     filterCoeff_yz_w_Proc[Pstream::myProcNo()].setSize(size);
 
+    nfK_=4;
+    //loop through all indices in one proc, and set filter kernel size and fill with 0.0
     forAll(procIdx[Pstream::myProcNo()],subI)
     {
-        int I = subI+start;
-        filterCoeff_yz_u_Proc[Pstream::myProcNo()][subI].setSize((2*NLzField_[I].component(0)+1)*(2*NLyField_[I].component(0)+1),0.0);
-        filterCoeff_yz_v_Proc[Pstream::myProcNo()][subI].setSize((2*NLzField_[I].component(1)+1)*(2*NLyField_[I].component(1)+1),0.0);
-        filterCoeff_yz_w_Proc[Pstream::myProcNo()][subI].setSize((2*NLzField_[I].component(2)+1)*(2*NLyField_[I].component(2)+1),0.0);
+        int I = subI+start; //index in full array
+        filterCoeff_yz_u_Proc[Pstream::myProcNo()][subI].setSize((nfK_*NLzField_[I].component(0)+1)*(nfK_*NLyField_[I].component(0)+1),0.0);
+        filterCoeff_yz_v_Proc[Pstream::myProcNo()][subI].setSize((nfK_*NLzField_[I].component(1)+1)*(nfK_*NLyField_[I].component(1)+1),0.0);
+        filterCoeff_yz_w_Proc[Pstream::myProcNo()][subI].setSize((nfK_*NLzField_[I].component(2)+1)*(nfK_*NLyField_[I].component(2)+1),0.0);
     }
 
-    //set size of filters, get max size
-    //max sizes
-
+    //to determine size if virtual grid, use the largest filter kernel size
     NLyMax_u = 0;
     NLyMax_v = 0;
     NLyMax_w = 0;
@@ -583,6 +578,7 @@ void Foam::inflowGenerator::initData()
     NLzMax_v = 0;
     NLzMax_w = 0;
 
+    //find largest length scale (relates to filter kernel size)
     forAll(NLyField_, I)
     {
         if (NLyField_[I].component(0)>NLyMax_u)
@@ -600,18 +596,27 @@ void Foam::inflowGenerator::initData()
             NLzMax_w=NLzField_[I].component(2);
     }
 
-    //Info << NLyMax_u << maximum << endl;
+    //Info << "NLyMax_u" << NLyMax_u << endl;
 
-    //set size of virtual grid
-    virtualRandomField_u_.setSize((NY_+2*NLyMax_u)*(NZ_+2*NLzMax_u));
-    virtualRandomField_v_.setSize((NY_+2*NLyMax_v)*(NZ_+2*NLzMax_v));
-    virtualRandomField_w_.setSize((NY_+2*NLyMax_w)*(NZ_+2*NLzMax_w));
+    //set size of virtual grid. (remark: not NY_+nfK_*NLyMax_u+1 since one point is shared...)
+    virtualRandomField_u_.setSize((NY_+nfK_*NLyMax_u)*(NZ_+nfK_*NLzMax_u));
+    virtualRandomField_v_.setSize((NY_+nfK_*NLyMax_v)*(NZ_+nfK_*NLzMax_v));
+    virtualRandomField_w_.setSize((NY_+nfK_*NLyMax_w)*(NZ_+nfK_*NLzMax_w));
+    zOffsetRnd_u_ = nfK_/2*NLzMax_u;
+    yOffsetRnd_u_ = nfK_/2*NLyMax_u;
+    zOffsetRnd_v_ = nfK_/2*NLzMax_v;
+    yOffsetRnd_v_ = nfK_/2*NLyMax_v;
+    zOffsetRnd_w_ = nfK_/2*NLzMax_w;
+    yOffsetRnd_w_ = nfK_/2*NLyMax_w;
+
 
     Info << "calculating filter coefficients" << endl;
-
+    
+    //each processor calculates its filter kernels
     forAll(procIdx[Pstream::myProcNo()],subI)
     {
-        int I = subI+start;
+    
+        int I = subI+start; //location that belongs to this processor in the full field
 
         get2DFilterCoeff_New(filterCoeff_yz_u_Proc[Pstream::myProcNo()][subI],NLyField_[I].component(0), NLzField_[I].component(0));
         get2DFilterCoeff_New(filterCoeff_yz_v_Proc[Pstream::myProcNo()][subI],NLyField_[I].component(1), NLzField_[I].component(1));
@@ -640,6 +645,10 @@ void Foam::inflowGenerator::initData()
 
         OFstream(rootPath/"dbg_ReStress")() << ReStress;
         OFstream(rootPath/"dbg_UMean")() << UMean;
+        
+        OFstream(rootPath/"dbg_filterCoeff_yz_u")() << filterCoeff_yz_u_Proc;
+        OFstream(rootPath/"dbg_filterCoeff_yz_v")() << filterCoeff_yz_v_Proc;
+        OFstream(rootPath/"dbg_filterCoeff_yz_w")() << filterCoeff_yz_w_Proc;
 
     }
 }
@@ -692,7 +701,7 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
     else
     {
         double sumx = 0.0;
-        label NLX2P1_x=2*NLX_x+1;
+        label NLX2P1_x=nfK_*NLX_x+1;
         b_x.setSize(NLX2P1_x);
 
         for (int j=0; j<NLX2P1_x; j++)
@@ -700,9 +709,9 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
             if (correlationShape_=="exp")
                 sumx += Foam::exp(-2.0*j/NLX_x);
             else if (correlationShape_=="doubleExp")
-                sumx += Foam::exp(-4.0*fabs((j-1.0*NLX_x)/(NLX_x)));
+                sumx += Foam::exp(-4.0*fabs((j-(nfK_/2.0)*NLX_x)/(NLX_x)));
             else if (correlationShape_=="gaussian")
-                sumx += Foam::exp(-2.0*pi*Foam::sqr(scalar(j-1.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))));
+                sumx += Foam::exp(-2.0*pi*Foam::sqr(scalar(j-(nfK_/2.0)*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))));
             else
                 Info << "correlationShape" << correlationShape_ << "does not exist (ERROR)" << endl;
         }
@@ -713,9 +722,9 @@ void Foam::inflowGenerator::getFilterCoeff_New(scalarList& b_x, label NLX_x)
             if (correlationShape_=="exp")
                 b_x[j] = Foam::exp(-1.0*j/NLX_x)/sumx;
             else if (correlationShape_=="doubleExp")
-                b_x[j] = Foam::exp(-2.0*fabs((j-1.0*NLX_x)/(NLX_x)))/sumx;
+                b_x[j] = Foam::exp(-2.0*fabs((j-(nfK_/2.0)*NLX_x)/(NLX_x)))/sumx;
             else if (correlationShape_=="gaussian")
-                b_x[j]= Foam::exp(-pi*Foam::sqr(scalar(j-1.0*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))))/sumx;
+                b_x[j]= Foam::exp(-pi*Foam::sqr(scalar(j-(nfK_/2.0)*NLX_x))/(2.0*Foam::sqr(scalar(NLX_x))))/sumx;
             else
                 Info << "correlationShape" << correlationShape_ << "does not exist (ERROR)" << endl;
         }
@@ -727,15 +736,17 @@ void Foam::inflowGenerator::get2DFilterCoeff_New(scalarList& filter,label NLY_x,
 {
     scalarList by_x;
     scalarList bz_x;
-
+    
+    //1D filter kernel
     getFilterCoeff_New(by_x, NLY_x);
     getFilterCoeff_New(bz_x, NLZ_x);
 
-    for (int i=0; i<(2*NLY_x+1); i++)
+    //2D filter kernel from 1D kernels
+    for (int i=0; i<(nfK_*NLY_x+1); i++)
     {
-        for (int j=0; j<(2*NLZ_x+1); j++)
+        for (int j=0; j<(nfK_*NLZ_x+1); j++)
         {
-            filter[get1DIndex(i,j,2*NLZ_x+1)] = by_x[i]*bz_x[j];
+            filter[get1DIndex(i,j,nfK_*NLZ_x+1)] = by_x[i]*bz_x[j];
         }
     }
 }
@@ -770,12 +781,13 @@ void Foam::inflowGenerator::spatialCorr()
             double sumTmp_v=0;
             double sumTmp_w=0;
 
-            for (int ii=0;ii<(2*NLyField_[I].component(0)+1);ii++)
+            for (int ii=0;ii<(nfK_*NLyField_[I].component(0)+1);ii++)
             {
-                int start_rnd=get1DIndex(i+NLyMax_u-NLyField_[I].component(0)+ii, j+NLzMax_u-NLzField_[I].component(0), (NZ_+2*NLzMax_u));
-                int size_rnd=2*NLzField_[I].component(0)+1;
-                int size_filt=2*NLzField_[I].component(0)+1;
-                int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(0)+1));
+                
+                int start_rnd=get1DIndex(i+yOffsetRnd_u_-nfK_/2*NLyField_[I].component(0)+ii, j+zOffsetRnd_u_-nfK_/2*NLzField_[I].component(0), (NZ_+nfK_*NLzMax_u));
+                int size_rnd=nfK_*NLzField_[I].component(0)+1;
+                int size_filt=nfK_*NLzField_[I].component(0)+1;
+                int start_filt=get1DIndex(ii, 0, (nfK_*NLzField_[I].component(0)+1));
 
                 SubField<scalar> rnd = SubField<scalar>(virtualRandomField_u_,size_rnd,start_rnd);
                 SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_u_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
@@ -784,12 +796,12 @@ void Foam::inflowGenerator::spatialCorr()
                 //sumTmp_u+=rnd[0];
             }
 
-            for (int ii=0;ii<(2*NLyField_[I].component(1)+1);ii++)
+            for (int ii=0;ii<(nfK_*NLyField_[I].component(1)+1);ii++)
             {
-                int start_rnd=get1DIndex(i+NLyMax_v-NLyField_[I].component(1)+ii, j+NLzMax_v-NLzField_[I].component(1), (NZ_+2*NLzMax_v));
-                int size_rnd=2*NLzField_[I].component(1)+1;
-                int size_filt=2*NLzField_[I].component(1)+1;
-                int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(1)+1));
+                int start_rnd=get1DIndex(i+yOffsetRnd_v_-nfK_/2*NLyField_[I].component(1)+ii, j+zOffsetRnd_v_-nfK_/2*NLzField_[I].component(1), (NZ_+nfK_*NLzMax_v));
+                int size_rnd=nfK_*NLzField_[I].component(1)+1;
+                int size_filt=nfK_*NLzField_[I].component(1)+1;
+                int start_filt=get1DIndex(ii, 0, (nfK_*NLzField_[I].component(1)+1));
 
                 SubField<scalar> rnd = SubField<scalar>(virtualRandomField_v_,size_rnd,start_rnd);
                 SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_v_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
@@ -798,12 +810,12 @@ void Foam::inflowGenerator::spatialCorr()
                 //sumTmp_v=virtualRandomField_v_[start_rnd];
             }
 
-            for (int ii=0;ii<(2*NLyField_[I].component(2)+1);ii++)
+            for (int ii=0;ii<(nfK_*NLyField_[I].component(2)+1);ii++)
             {
-                int start_rnd=get1DIndex(i+NLyMax_w-NLyField_[I].component(2)+ii, j+NLzMax_w-NLzField_[I].component(2), (NZ_+2*NLzMax_v));
-                int size_rnd=2*NLzField_[I].component(2)+1;
-                int size_filt=2*NLzField_[I].component(2)+1;
-                int start_filt=get1DIndex(ii, 0, (2*NLzField_[I].component(2)+1));
+                int start_rnd=get1DIndex(i+yOffsetRnd_w_-nfK_/2*NLyField_[I].component(2)+ii, j+zOffsetRnd_w_-nfK_/2*NLzField_[I].component(2), (NZ_+nfK_*NLzMax_w));
+                int size_rnd=nfK_*NLzField_[I].component(2)+1;
+                int size_filt=nfK_*NLzField_[I].component(2)+1;
+                int start_filt=get1DIndex(ii, 0, (nfK_*NLzField_[I].component(2)+1));
 
                 SubField<scalar> rnd = SubField<scalar>(virtualRandomField_w_,size_rnd,start_rnd);
                 SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_w_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
@@ -992,13 +1004,13 @@ void Foam::inflowGenerator::initialize()
 
 inline int Foam::inflowGenerator::get1DIndex(int x, int y, int yMax)
 {
-    //helper function to convert 2d array index into 1d list index
+    //helper function to convert 2d array index into 1d list index. Array is converted in y direction into list.
     return x*yMax + y;
 }
 
 inline void Foam::inflowGenerator::get2DIndex(int I, int& x, int& y, int yMax)
 {
-    //helper function to get 2d index (x,y) from 1d index
+    //helper function to get 2d array index (x,y) from 1d list index.
     x=floor(I/yMax);
     y=(I-x*yMax);
 }
@@ -1030,8 +1042,25 @@ void Foam::inflowGenerator::updateCoeffs()
         temporalCorr();     //create new temporally correlated slice
         scaleFluct();       //Apply Lund's transformation to new slice
 
+        
+        //Mass flux correction
+        scalarField Sf(this->patch().magSf());
+        scalarField phi(uFluctFinal.component(0)*this->patch().magSf());
+        scalar dPhi = gSum(phi);
+        scalar sumSf = gSum(this->patch().magSf());
+        
+        Info << "Delta Vdot: " << dPhi << endl;
+        
+        forAll(uFluctFinal, celli)
+        {
+            uFluctFinal[celli].component(0)=uFluctFinal[celli].component(0)-dPhi/sumSf;
+        }
+        phi=uFluctFinal.component(0)*this->patch().magSf();
+        Info << "Corrected Delta Vdot: " << gSum(phi) << endl;
+        
         Info << "Finishing Inflow Generation, time = "<<this->db().time().elapsedClockTime()<<" s"<<endl;
-
+        
+  
         Field<vector>& patchField = *this;
         forAll(patchField, celli)
         {
