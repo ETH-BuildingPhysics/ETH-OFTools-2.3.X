@@ -48,7 +48,8 @@ void Foam::calc(const argList& args, const Time& runTime, const fvMesh& mesh)
                     IOobject::AUTO_WRITE
             ),
             mesh,
-            dimensionedScalar("zero",dimVolume,0.0)
+            dimensionedScalar("zero",dimVolume,0.0),
+            "zeroGradient"
     );
     
   
