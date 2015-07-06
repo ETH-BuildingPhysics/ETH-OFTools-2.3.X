@@ -481,7 +481,7 @@ for ts in tsListAll:
     if is_number(ts)==True:
         tsList.append(ts)  
 tsList = sortNumStrList(tsList)
-print(tsList)
+#print(tsList)
 
 # define the absolut path of the HDF5 file
 hdf5file = None
