@@ -161,7 +161,17 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
         FatalErrorIn("decayingTurbulenceFvPatchVectorField::")<< "Some RMS are negative in R"<<abort(FatalError);
     }
     
-    if (dict.lookupOrDefault("robustLundTransformation",false)==false)
+    bool bError = false;
+    bool bRobustLund = dict.lookupOrDefault("robustLundTransformation",false);
+
+    forAll(RField_,i)
+    {
+        if (RField_[i].component(symmTensor::XX)<=0.0)
+            Info << "Found a negative or 0 Re Stress in XX" << endl;
+            bError=true;
+            Lund_[i]=pTraits<tensor>::I;
+    }
+    if (!bRobustLund and !bError)
     {
         Info << "Standard Lund transformation algorithm applied." << endl;
         Lund_.replace(tensor::XX, sqrt(RField_.component(symmTensor::XX)));
@@ -171,7 +181,7 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
         Lund_.replace(tensor::ZY, (RField_.component(symmTensor::YZ) - Lund_.component(tensor::YX)*Lund_.component(tensor::ZX) )/Lund_.component(tensor::YY));
         Lund_.replace(tensor::ZZ, sqrt(RField_.component(symmTensor::ZZ) - sqr(Lund_.component(tensor::ZX))-sqr(Lund_.component(tensor::ZY))));
     }
-    else
+    else if (bRobustLund and !bError)
     {
         Info << "Robust Lund transformation algorithm applied." << endl;
         forAll(Lund_,i)
@@ -220,7 +230,10 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
             };
 
         };
-    };
+    }else
+    {
+        Lund_=pTraits<tensor>::I;
+    }
 
     // debug: write the interpolated source field if required.
     if (dict.lookupOrDefault("writeSourceFields",false)==true)
