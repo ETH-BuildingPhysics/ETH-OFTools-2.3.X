@@ -30,7 +30,6 @@ License
 #include "SubField.H"
 #include "IFstream.H"
 #include "OFstream.H"
-#include "FieldFunctions.H"
 #include "boundBox.H"
 #include "mathematicalConstants.H"
 
