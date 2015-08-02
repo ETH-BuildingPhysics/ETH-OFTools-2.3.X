@@ -49,6 +49,7 @@ inflowGenerator
     dz_(0.0),
     NY_(0),
     NZ_(0),
+    gridFactor_(1.0),
     curTimeIndex_(-1),
 	UMean(p.size()),
 	ReStress(p.size()),
@@ -86,6 +87,7 @@ inflowGenerator
     dz_(ptf.dz_),
     NY_(ptf.NY_),
     NZ_(ptf.NZ_),
+    gridFactor_(ptf.gridFactor_),
 	curTimeIndex_(-1),
 	UMean(ptf.UMean,mapper),
 	ReStress(ptf.ReStress,mapper),
@@ -115,7 +117,8 @@ inflowGenerator
     const dictionary& dict
 )
 :
-    fixedValueFvPatchField<vector>(p, iF, dict),	
+    fixedValueFvPatchField<vector>(p, iF, dict),
+    gridFactor_(dict.lookupOrDefault("gridFactor", 1.0)),
     curTimeIndex_(-1),
 	UMean(p.size(),pTraits<vector>::zero),
     ReStress(p.size(),pTraits<symmTensor>::zero),
@@ -178,6 +181,7 @@ inflowGenerator
     dz_(ptf.dz_),
     NY_(ptf.NY_),
     NZ_(ptf.NZ_),
+    gridFactor_(ptf.gridFactor_),
 	curTimeIndex_(-1),
 	UMean(ptf.UMean),
 	ReStress(ptf.ReStress),
@@ -213,6 +217,7 @@ inflowGenerator
     dz_(ptf.dz_),
     NY_(ptf.NY_),
     NZ_(ptf.NZ_),
+    gridFactor_(ptf.gridFactor_),
 	curTimeIndex_(-1),
 	UMean(ptf.UMean),
 	ReStress(ptf.ReStress),
@@ -254,7 +259,7 @@ void Foam::inflowGenerator::autoSizeGrid()
     scalar smallestFace=0;
     smallestFace=gMin(patch().magSf());
     //Info << "cell dy: "<< Foam::sqrt(smallestFace) << endl;
-    scalar dx=Foam::sqrt(smallestFace);
+    scalar dx=Foam::sqrt(smallestFace)*gridFactor_;
 
     //same grid spacing for y and z direction
     NY_=LY_/dx+1;
@@ -1079,6 +1084,7 @@ void Foam::inflowGenerator::write(Ostream& os) const
     fvPatchField<vector>::write(os);
     os.writeKeyword("perturb") << perturb_ << token::END_STATEMENT << nl;
     os.writeKeyword("correlationShape") << correlationShape_ << token::END_STATEMENT << nl;
+    os.writeKeyword("gridFactor") << gridFactor_ << token::END_STATEMENT << nl;
     //os.writeKeyword("origin") << origin_ << token::END_STATEMENT << nl;
     //os.writeKeyword("NY") << NY_ << token::END_STATEMENT << nl;
     //os.writeKeyword("NZ") << NZ_ << token::END_STATEMENT << nl;

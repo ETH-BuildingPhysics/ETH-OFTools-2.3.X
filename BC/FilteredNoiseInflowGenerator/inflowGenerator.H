@@ -72,6 +72,7 @@ class inflowGenerator
     scalar dz_;
     label NY_;
     label NZ_;
+    scalar gridFactor_;
 
     //- Current time index (used for updating)
     label curTimeIndex_;
