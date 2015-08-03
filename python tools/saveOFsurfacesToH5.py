@@ -127,16 +127,15 @@ def parseFoamFile_sampledSurface(foamFile):
         match = re.findall('[-+]?\d*\.?\d+e*[-+]?\d*', line)
         if (line.startswith('//')):
             pass
+        # chatch the firt number and it is alone: non constant field (normal case)
         if (catchFirstNb==False and len(match)==1):
             catchFirstNb = True
-        elif (catchFirstNb==False and len(match)==2): #case for a constant scalar field
+        # chatch the firt number and it is NOT alone: the field is constant and only one line is write in the file (OF standard)
+        elif (catchFirstNb==False and len(match)>1):   
             catchFirstNb = True
             matchfloat = [float(nb) for nb in match]
-            output.append(matchfloat[1])
-        elif (catchFirstNb==False and len(match)>2): #case for a constant <type other than scalar> field
-            catchFirstNb = True
-            matchfloat = [float(nb) for nb in match]
-            output.append(matchfloat)
+            output = [matchfloat[1:]  for i in range(int(matchfloat[0])) ]
+        # catch the remainding numbers
         elif (catchFirstNb==True and len(match)>0):
             matchfloat = [float(nb) for nb in match]
             if len(matchfloat)==1:
