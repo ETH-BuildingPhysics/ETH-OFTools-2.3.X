@@ -197,9 +197,9 @@ if __name__ == "__main__":
     #=============================================================================#
     # parse arguments
     #=============================================================================#
-    parser = argparse.ArgumentParser(description=('Convert an OpenFOAM probe file in a hdf5 probe file. ',
-                                                  'The OpenFOAM probes must be located in the OF default ',
-                                                  'path (ex: OFcase/postProcessing/probeName/timestep/U)'))
+    parser = argparse.ArgumentParser(description='Convert an OpenFOAM probe file in a hdf5 probe file. '
+                                                  'The OpenFOAM probes must be located in the OF default '
+                                                  'path (ex: OFcase/postProcessing/probeName/timestep/U)')
     parser.add_argument('-case',
                         dest='case',
                         type=str,
@@ -233,9 +233,9 @@ if __name__ == "__main__":
                         required=False,
                         choices=['raw','full'],
                         default='raw',
-                        help=('Specify which datas must be saved in the hdf5. ',
-                              'Choices: raw or full.  Default: raw. See ',
-                              'pyFlowStat.PointProbeFunctions.savePPlist_hdf5 for more details.')
+                        help='Specify which datas must be saved in the hdf5. '
+                              'Choices: raw or full.  Default: raw. See '
+                              'pyFlowStat.PointProbeFunctions.savePPlist_hdf5 for more details.'
                         )
     parser.add_argument('-var',
                         dest='var',
@@ -249,16 +249,16 @@ if __name__ == "__main__":
                         type=str,
                         required=False,
                         default='',
-                        help=('Specify an extended name for all the h5 files generated. ',
-                              'Example -rename foobar --> U_foobar.h5')
+                        help='Specify an extended name for all the h5 files generated. '
+                              'Example -rename foobar --> U_foobar.h5'
                         )
     parser.add_argument('-overwrite',
                         dest="overwrite",
                         action="store_true",
                         default=False,
-                        help=('if the hdf5 file already exist, delete it and recreate it. ',
-                              'Default behavior: the file already exists, nothing is ',
-                              'saved and the execution continues with the other variable')
+                        help='if the hdf5 file already exist, delete it and recreate it. '
+                              'Default behavior: the file already exists, nothing is '
+                              'saved and the execution continues with the other variable'
                         )
 
     args = parser.parse_args()

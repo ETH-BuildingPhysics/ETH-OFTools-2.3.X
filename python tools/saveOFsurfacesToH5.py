@@ -404,114 +404,117 @@ def saveVtkSurfaceToHDF5(surfLocAbsPath,tsList,surfName,var,hdf5parser):
             selectDict[validVarList[i]] = data
         saveTsToHDF5(ts,selectDict,hdf5parser)
             
-#=============================================================================#
-# parser arguments
-#=============================================================================#
-parser = argparse.ArgumentParser(description='Convert an OpenFOAM surfaces in a HDF5 file. '
-                                             'Be default, the script is launch in the surfaces '
-                                             'folder. Use -surfLoc if started from an other location')
 
-parser.add_argument('-loc',
-                    dest='surfLoc',
-                    type=str,
-                    required=False,
-                    default=os.getcwd(),
-                    help='Path to the surfaces. The surfaces folder contains '
-                         'a list of timestep. Default: execution path.'
-                    )
-parser.add_argument('-name',
-                    dest='surfName',
-                    type=str,
-                    required=True,
-                    help='Name of the surface. '
-                    )
-parser.add_argument('-format',
-                    dest='surfFormat',
-                    type=str,
-                    required=True,
-                    help='file format of the surface. choice: "foamFile", "vtk".'
-                    )
-parser.add_argument('-output',
-                    dest='output',
-                    type=str,
-                    required=False,
-                    default=None,
-                    help='Name of the HDF5 output. The default name is "surfName.h5" '
-                         'located in "OFcase/postProcessing/surfaces".'
-                    )
-parser.add_argument('-vars',
-                    dest='vars',
-                    type=str,
-                    required=False,
-                    default=[],
-                    nargs='+',
-                    help='Specify which variables to save in the HDF5. If not specified, all '
-                         'available variables are saved.'
-                    )
-parser.add_argument('-overwrite',
-                    dest="overwrite",
-                    action="store_true",
-                    default=False,
-                    help='If the hdf5 file already exist, delete it and recreate it. '
-                         'Default behavior: if the file already exists, nothing is done '
-                         'and the execution is aborded.' 
-                    )
-args = parser.parse_args()
+def saveSurfaces(surfLoc,surfName,surfFormat,output,variables,overwrite):
+    '''
+    Main. The argument comes from
+    '''
+    workingDir = os.getcwd()
+    
+    print('Save surface "'+surfName+'"')
+    print('')
 
-
-#=============================================================================#
-# Main
-#=============================================================================#
-workingDir = os.getcwd()
-  
-print('Save surface "'+args.surfName+'"')
-print('')
-
-# Create the absolut path of surfLoc and check if it exists
-surfLocAbsPath = os.path.abspath(args.surfLoc)
-if os.path.exists(surfLocAbsPath):
-    pass
-else:
-    sys.exit('The surface location "'+surfLocAbsPath+'" does not exist. Exit')  
-
-# get the list of timestep, check if it is a number and sort them
-tsListAll = get_immediate_SubDirList(surfLocAbsPath)
-tsList = []
-for ts in tsListAll:
-    if is_number(ts)==True:
-        tsList.append(ts)  
-tsList = sortNumStrList(tsList)
-#print(tsList)
-
-# define the absolut path of the HDF5 file
-hdf5file = None
-if args.output==None:
-    hdf5file = os.path.join(surfLocAbsPath,args.surfName+'.h5')
-else:
-    hdf5file = os.path.join(surfLocAbsPath,args.output)
-
-# save the surface in the HDF5.    
-if args.overwrite==True and os.path.exists(hdf5file)==True:
-    os.remove(hdf5file)
-
-if os.path.exists(hdf5file)==False:
-    h5w = h5py.File(hdf5file, 'w-')
-    if args.surfFormat=='foamFile':
-        saveFoamFileSurfaceToHDF5(surfLocAbsPath,
-                                  tsList,
-                                  args.surfName,
-                                  args.vars,
-                                  h5w)
-    elif args.surfFormat=='vtk':
-        saveVtkSurfaceToHDF5(surfLocAbsPath,
-                             tsList,
-                             args.surfName,
-                             args.vars,
-                             h5w)
+    # Create the absolut path of surfLoc and check if it exists
+    surfLocAbsPath = os.path.abspath(surfLoc)
+    if os.path.exists(surfLocAbsPath):
+        pass
     else:
-        sys.exit('Wrong surface format. Exit.')        
-    h5w.close()
-else:
-    sys.exit('the HDF5 file already exist. Exit.')
+        sys.exit('The surface location "'+surfLocAbsPath+'" does not exist. Exit')  
 
-print('')
+    # get the list of timestep, check if it is a number and sort them
+    tsListAll = get_immediate_SubDirList(surfLocAbsPath)
+    tsList = []
+    for ts in tsListAll:
+        if is_number(ts)==True:
+            tsList.append(ts)  
+    tsList = sortNumStrList(tsList)
+    #print(tsList)
+
+    # define the absolut path of the HDF5 file
+    hdf5file = None
+    if output==None:
+        hdf5file = os.path.join(surfLocAbsPath,surfName+'.h5')
+    else:
+        hdf5file = os.path.join(surfLocAbsPath,output)
+
+    # save the surface in the HDF5.    
+    if overwrite==True and os.path.exists(hdf5file)==True:
+        os.remove(hdf5file)
+
+    if os.path.exists(hdf5file)==False:
+        h5w = h5py.File(hdf5file, 'w-')
+        if surfFormat=='foamFile':
+            saveFoamFileSurfaceToHDF5(surfLocAbsPath,
+                                    tsList,
+                                    surfName,
+                                    variables,
+                                    h5w)
+        elif surfFormat=='vtk':
+            saveVtkSurfaceToHDF5(surfLocAbsPath,
+                                tsList,
+                                surfName,
+                                variables,
+                                h5w)
+        else:
+            sys.exit('Wrong surface format. Exit.')        
+        h5w.close()
+    else:
+        sys.exit('the HDF5 file already exist. Exit.')
+
+    print('')
+
+if __name__ == "__main__":
+    #=============================================================================#
+    # parser arguments
+    #=============================================================================#
+    parser = argparse.ArgumentParser(description='Convert an OpenFOAM surfaces in a HDF5 file. '
+                                                'Be default, the script is launch in the surfaces '
+                                                'folder. Use -surfLoc if started from an other location')
+
+    parser.add_argument('-loc',
+                        dest='surfLoc',
+                        type=str,
+                        required=False,
+                        default=os.getcwd(),
+                        help='Path to the surfaces. The surfaces folder contains '
+                            'a list of timestep. Default: execution path.'
+                        )
+    parser.add_argument('-name',
+                        dest='surfName',
+                        type=str,
+                        required=True,
+                        help='Name of the surface. '
+                        )
+    parser.add_argument('-format',
+                        dest='surfFormat',
+                        type=str,
+                        required=True,
+                        help='file format of the surface. choice: "foamFile", "vtk".'
+                        )
+    parser.add_argument('-output',
+                        dest='output',
+                        type=str,
+                        required=False,
+                        default=None,
+                        help='Name of the HDF5 output. The default name is "surfName.h5" '
+                            'located in "OFcase/postProcessing/surfaces".'
+                        )
+    parser.add_argument('-vars',
+                        dest='variables',
+                        type=str,
+                        required=False,
+                        default=[],
+                        nargs='+',
+                        help='Specify which variables to save in the HDF5. If not specified, all '
+                            'available variables are saved.'
+                        )
+    parser.add_argument('-overwrite',
+                        dest="overwrite",
+                        action="store_true",
+                        default=False,
+                        help='If the hdf5 file already exist, delete it and recreate it. '
+                            'Default behavior: if the file already exists, nothing is done '
+                            'and the execution is aborded.' 
+                        )
+    args = parser.parse_args()
+    saveSurfaces(args.surfLoc,args.surfName,args.surfFormat,args.output,args.variables,args.overwrite)
