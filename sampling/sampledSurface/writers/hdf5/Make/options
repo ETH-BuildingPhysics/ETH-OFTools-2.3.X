@@ -1,0 +1,29 @@
+sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
+sinclude $(RULES)/mplib$(WM_MPLIB)
+
+H5FLAGS  = -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_BSD_SOURCE -fPIC
+H5INC    = -I$(HDF5_DIR)/include
+H5LIBS   = -L$(HDF5_DIR)/lib -lhdf5_hl -lhdf5 -fPIC -lz -ldl -lrt -lm \
+           -Wl,-rpath -Wl,$(HDF5_DIR)/lib
+
+EXE_INC =-DWRITE_DP \
+    $(PFLAGS) $(PINC) \
+    $(H5FLAGS) $(H5INC) \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(LIB_SRC)/conversion/lnInclude \
+    -I$(LIB_SRC)/lagrangian/basic/lnInclude
+
+LIB_LIBS = $(PLIBS) \
+    $(H5LIBS) \
+    -lfiniteVolume \
+    -lmeshTools \
+    -lsurfMesh \
+    -lfileFormats \
+    -ltriSurface \
+    -llagrangian \
+    -lconversion
