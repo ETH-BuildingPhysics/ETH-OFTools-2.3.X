@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 sourcesPath=(
 
 )
@@ -17,6 +16,11 @@ functionObjectsPath=(
     timeAbort
 )
 
+samplingPath=(
+    sampledSurface/writers/foamFileSmall
+    sampledSurface/writers/hdf5/
+)
+
 solversPath=(
 #     pisoScalarFoam
 #     pisoScalarSourceFoam
@@ -25,29 +29,35 @@ solversPath=(
 )
 
 utilitiesPath=(
+    cellVolumes
     gradU
     LESdelta
     postAvg
+    Q2D
     resLES
     scalarCovariance
     scalarFluxes
+    SGSValues
     snGradU
     yPlusMeanLES
     Q2D
 )
+
+workingDir=$(pwd)
 
 # compile the boundary conditions
 echo "-------------------------------"
 echo "compile the boundary conditions"
 echo "-------------------------------"
 cd BC
+locDir=$(pwd)
 for i in "${BoundaryConditionsPath[@]}"
 do
     cd $i
     wmake
-    cd ..    
+    cd $locDir    
 done
-cd ..
+cd $workingDir
 echo ""
 
 # compile the function objects
@@ -55,13 +65,31 @@ echo "----------------------------"
 echo "compile the function objects"
 echo "----------------------------"
 cd FunctionObjects
+locDir=$(pwd)
+echo $locDir
 for i in "${functionObjectsPath[@]}"
 do 
     cd $i
     wmake
-    cd .. 
+    cd $locDir 
 done
-cd ..
+cd $workingDir
+echo ""
+
+
+# compile the sampling libraries
+echo "------------------------------"
+echo "compile the sampling libraries"
+echo "------------------------------"
+cd sampling
+locDir=$(pwd)
+for i in "${samplingPath[@]}"
+do 
+    cd $i
+    wmake
+    cd $locDir
+done
+cd $workingDir
 echo ""
 
 
@@ -70,27 +98,30 @@ echo "-------------------"
 echo "compile the solvers"
 echo "-------------------"
 cd Solvers
+locDir=$(pwd)
 for i in "${solversPath[@]}"
-do    
+do
     cd $i
     wmake
-    cd ..
+    cd $locDir
 done
-cd ..
+cd $workingDir
 echo ""
+
 
 # compile the utilities
 echo "---------------------"
 echo "compile the utilities"
 echo "---------------------"
 cd Utilities
+locDir=$(pwd)
 for i in "${utilitiesPath[@]}"
 do
     cd $i
     wmake
-    cd ..    
+    cd $locDir   
 done
-cd ..
+cd $workingDir
 echo ""
 
 
