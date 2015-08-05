@@ -47,6 +47,7 @@ namespace Foam
     template<>
     void Foam::hdf5SurfaceWriter::writeData
     (
+        const hid_t& file_id,
         const word& surfaceName,
         const word& fieldName,
         const word& time,
@@ -63,17 +64,8 @@ namespace Foam
             scalarData[iter] = values[iter];
         }
 
-    char hdffileName[80];
-    sprintf
-    (
-        hdffileName,
-        "postProcessing/%s.h5",
-        surfaceName.c_str()
-    );
 
-    hid_t file_id = H5Fopen(hdffileName, H5F_ACC_RDWR,H5P_DEFAULT);
-    hid_t group = H5Gcreate2(file_id, time.c_str(), H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
-
+    hid_t group = H5Gopen2(file_id, time.c_str(), H5P_DEFAULT);
     hsize_t dimsf[1];
     dimsf[0] = values.size();
     hid_t dataspace = H5Screate_simple(1, dimsf, NULL);
@@ -97,7 +89,7 @@ namespace Foam
     H5Sclose(dataspace);
     H5Tclose(datatype);
     H5Gclose(group);
-    H5Fclose(file_id);
+    
 
     delete [] scalarData;
 
@@ -107,6 +99,7 @@ namespace Foam
     template<>
     void Foam::hdf5SurfaceWriter::writeData
     (
+        const hid_t& file_id,
         const word& surfaceName,
         const word& fieldName,
         const word& time,
@@ -124,15 +117,7 @@ namespace Foam
             vectorData[3*iter+2] = values[iter].z();
         }
 
-    char hdffileName[80];
-    sprintf
-    (
-        hdffileName,
-        "postProcessing/%s.h5",
-        surfaceName.c_str()
-    );
 
-    hid_t file_id = H5Fopen(hdffileName, H5F_ACC_RDWR,H5P_DEFAULT);
     hid_t group = H5Gcreate2(file_id, time.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     hsize_t dimsf[2];
@@ -159,7 +144,6 @@ namespace Foam
     H5Sclose(dataspace);
     H5Tclose(datatype);
     H5Gclose(group);
-    H5Fclose(file_id);
 
     delete [] vectorData;
     }
@@ -168,6 +152,7 @@ namespace Foam
     template<>
     void Foam::hdf5SurfaceWriter::writeData
     (
+        const hid_t& file_id,
         const word& surfaceName,
         const word& fieldName,
         const word& time,
@@ -187,6 +172,7 @@ namespace Foam
     template<>
     void Foam::hdf5SurfaceWriter::writeData
     (
+        const hid_t& file_id,
         const word& surfaceName,
         const word& fieldName,
         const word& time,
@@ -210,6 +196,7 @@ namespace Foam
     template<>
     void Foam::hdf5SurfaceWriter::writeData
     (
+        const hid_t& file_id,
         const word& surfaceName,
         const word& fieldName,
         const word& time,
@@ -233,14 +220,15 @@ namespace Foam
 }
 
 
-// Write generic field in vtk format
+// Write generic field
 template<class Type>
 void Foam::hdf5SurfaceWriter::writeData
 (
-    const word& surfaceName,
-    const word& fieldName,
-    const word& time,
-    const Field<Type>& values
+        const hid_t& file_id,
+        const word& surfaceName,
+        const word& fieldName,
+        const word& time,
+        const Field<Type>& values
 )
 {
     /*os  << "1 " << values.size() << " float" << nl;
@@ -264,37 +252,42 @@ void Foam::hdf5SurfaceWriter::writeTemplate
     const bool verbose
 ) const
 {
-    fileName surfaceDir(outputDir/surfaceName);
+    fileName surfaceDir2(outputDir/surfaceName);
 
-    if (!isDir(surfaceDir))
+    if (!isDir(surfaceDir2))
     {
-        mkDir(surfaceDir);
+        mkDir(surfaceDir2);
     }
 
     if (verbose)
     {
-        Info<< "Writing field " << fieldName << " to " << surfaceDir << endl;
+        Info<< "Writing field " << fieldName << " to " << surfaceDir2 << endl;
     }
 
     wordList dirComp=outputDir.components();
     word time=dirComp[dirComp.size()-1];
+    word surfaceDir=dirComp[dirComp.size()-2];
 
     // geometry should already have been written
-    // Values to separate directory (e.g. "scalarField/p")
 
-    fileName foamName(pTraits<Type>::typeName);
-    fileName valuesDir(surfaceDir  / (foamName + Field<Type>::typeName));
+    char hdffileName[80];
+    sprintf
+    (
+        hdffileName,
+        "postProcessing/%s/%s.h5",
+        surfaceDir.c_str(),
+        surfaceName.c_str()
+    );
 
-    if (!isDir(valuesDir))
-    {
-        mkDir(valuesDir);
-    }
-
-    
+    hid_t file_id = H5Fopen(hdffileName, H5F_ACC_RDWR,H5P_DEFAULT);
     // Write data
-    OFstream os(outputDir/fieldName + '_' + surfaceName + ".vtk");
-    writeData(surfaceName,fieldName,time, values);
-    //OFstream(valuesDir/fieldName)()  << values;
+    writeData(file_id,surfaceName,fieldName,time, values);
+
+    H5Fclose(file_id);
+    
+    
+
+
 }
 
 
@@ -326,24 +319,26 @@ void Foam::hdf5SurfaceWriter::write
     const bool verbose
 ) const
 {
-    fileName surfaceDir(outputDir/surfaceName);
+    fileName surfaceDir2(outputDir/surfaceName);
 
-    if (!isDir(surfaceDir))
+    if (!isDir(surfaceDir2))
     {
-        mkDir(surfaceDir);
+        mkDir(surfaceDir2);
     }
-
 
     if (verbose)
     {
-    Info<< "Not writing geometry to " << surfaceDir << endl;
+    Info<< "Not writing geometry to " << surfaceDir2 << endl;
     }
 
+    wordList dirComp=outputDir.components();
+    word surfaceDir=dirComp[dirComp.size()-2];
     char hdffileName[80];
     sprintf
     (
         hdffileName,
-        "postProcessing/%s.h5",
+        "postProcessing/%s/%s.h5",
+        surfaceDir.c_str(),
         surfaceName.c_str()
     );
 
@@ -420,7 +415,42 @@ void Foam::hdf5SurfaceWriter::write
 
         H5Gclose(group);
     }
+    
 
+    word time=dirComp[dirComp.size()-1];
+    double timeValue = atof(time.c_str());
+
+    status = H5Gget_objinfo (file_id, time.c_str(), 0, NULL);
+    if (status != 0)
+    {
+    hid_t group = H5Gcreate2(file_id, time.c_str(), H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
+
+    ioScalar* scalarData;
+    scalarData = new ioScalar[1];
+    scalarData[0] = timeValue;
+    hsize_t dimsf[1];
+    dimsf[0] = 1;
+    hid_t dataspace = H5Screate_simple(1, dimsf, NULL);
+
+    hid_t datatype = H5Tcopy(H5T_SCALAR);
+
+    char datasetName[80];
+    sprintf
+    (
+        datasetName,
+        "%s/time",
+        time.c_str()
+    );
+
+    hid_t  dataset = H5Dcreate2(file_id, datasetName, datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    H5Dwrite(dataset, H5T_SCALAR, H5S_ALL, H5S_ALL, H5P_DEFAULT, scalarData);
+    H5Dclose(dataset);
+    H5Sclose(dataspace);
+    H5Tclose(datatype);
+
+    H5Gclose(group);
+    }
     status = H5Eset_auto2(H5E_DEFAULT, NULL,NULL);
     H5Fclose(file_id);
 

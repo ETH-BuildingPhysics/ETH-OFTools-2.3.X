@@ -103,7 +103,7 @@ public:
     // Member Functions
 
         template<class Type>
-        static void writeData(const word&,const word&, const word&, const Field<Type>&);
+        static void writeData(const hid_t&,const word&,const word&, const word&, const Field<Type>&);
 
         //- True if the surface format supports geometry in a separate file.
         //  False if geometry and field must be in a single file
