@@ -72,7 +72,7 @@ namespace Foam
     );
 
     hid_t file_id = H5Fopen(hdffileName, H5F_ACC_RDWR,H5P_DEFAULT);
-    hid_t group = H5Gcreate(file_id, time.c_str(), H5P_DEFAULT);
+    hid_t group = H5Gcreate2(file_id, time.c_str(), H5P_DEFAULT,H5P_DEFAULT,H5P_DEFAULT);
 
     hsize_t dimsf[1];
     dimsf[0] = values.size();
@@ -89,7 +89,7 @@ namespace Foam
         fieldName.c_str()
     );
 
-    hid_t  dataset = H5Dcreate(file_id, datasetName, datatype, dataspace, H5P_DEFAULT);
+    hid_t  dataset = H5Dcreate2(file_id, datasetName, datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     H5Dwrite(dataset, H5T_SCALAR, H5S_ALL, 
           H5S_ALL, H5P_DEFAULT, scalarData);
@@ -133,7 +133,7 @@ namespace Foam
     );
 
     hid_t file_id = H5Fopen(hdffileName, H5F_ACC_RDWR,H5P_DEFAULT);
-    hid_t group = H5Gcreate(file_id, time.c_str(), H5P_DEFAULT);
+    hid_t group = H5Gcreate2(file_id, time.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     hsize_t dimsf[2];
     dimsf[0] = values.size();
@@ -151,7 +151,7 @@ namespace Foam
         fieldName.c_str()
     );
 
-    hid_t  dataset = H5Dcreate(file_id, datasetName, datatype, dataspace, H5P_DEFAULT);
+    hid_t  dataset = H5Dcreate2(file_id, datasetName, datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     H5Dwrite(dataset, H5T_SCALAR, H5S_ALL, 
           H5S_ALL, H5P_DEFAULT, vectorData);
@@ -350,17 +350,17 @@ void Foam::hdf5SurfaceWriter::write
     if (!isFile(hdffileName))
     {
     Info<< "Creating new H5 file " << hdffileName << endl;
-    hid_t file_id = H5Fcreate (hdffileName, H5F_ACC_TRUNC,H5P_DEFAULT, H5P_DEFAULT);
+    hid_t file_id = H5Fcreate(hdffileName, H5F_ACC_TRUNC,H5P_DEFAULT, H5P_DEFAULT);
     H5Fclose(file_id); 
     }
 
     hid_t file_id = H5Fopen(hdffileName, H5F_ACC_RDWR,H5P_DEFAULT);
-    hid_t status = H5Eset_auto(NULL, NULL);
+    hid_t status = H5Eset_auto2(H5E_DEFAULT, NULL,NULL);
     status = H5Gget_objinfo (file_id, "/mesh", 0, NULL);
     if (status != 0)
     {
         Info<< "writing mesh to H5 " << hdffileName << endl;
-        hid_t group = H5Gcreate(file_id, "/mesh", H5P_DEFAULT);
+        hid_t group = H5Gcreate2(file_id, "/mesh", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
         ioScalar* vectorData;
         vectorData = new ioScalar[points.size()*3];
@@ -379,7 +379,7 @@ void Foam::hdf5SurfaceWriter::write
         hid_t dataspace = H5Screate_simple(2, dimsf, NULL);
 
         hid_t datatype = H5Tcopy(H5T_SCALAR);
-        hid_t dataset = H5Dcreate(file_id, "/mesh/points", datatype, dataspace, H5P_DEFAULT);
+        hid_t dataset = H5Dcreate2(file_id, "/mesh/points", datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
         H5Dwrite(dataset, H5T_SCALAR, H5S_ALL, 
               H5S_ALL, H5P_DEFAULT, vectorData);
@@ -406,7 +406,7 @@ void Foam::hdf5SurfaceWriter::write
         dataspace = H5Screate_simple(2, dimsf, NULL);
 
         datatype = H5Tcopy(H5T_SCALAR);
-        dataset = H5Dcreate(file_id, "/mesh/faces", datatype, dataspace, H5P_DEFAULT);
+        dataset = H5Dcreate2(file_id, "/mesh/faces", datatype, dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
         H5Dwrite(dataset, H5T_SCALAR, H5S_ALL, 
               H5S_ALL, H5P_DEFAULT, vectorData);
@@ -421,7 +421,7 @@ void Foam::hdf5SurfaceWriter::write
         H5Gclose(group);
     }
 
-    status = H5Eset_auto(NULL, NULL);
+    status = H5Eset_auto2(H5E_DEFAULT, NULL,NULL);
     H5Fclose(file_id);
 
     /*
