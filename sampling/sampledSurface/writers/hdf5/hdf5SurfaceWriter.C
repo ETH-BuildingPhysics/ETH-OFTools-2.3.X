@@ -67,7 +67,7 @@ namespace Foam
     sprintf
     (
         hdffileName,
-        "%s.h5",
+        "postProcessing/%s.h5",
         surfaceName.c_str()
     );
 
@@ -128,7 +128,7 @@ namespace Foam
     sprintf
     (
         hdffileName,
-        "%s.h5",
+        "postProcessing/%s.h5",
         surfaceName.c_str()
     );
 
@@ -343,7 +343,7 @@ void Foam::hdf5SurfaceWriter::write
     sprintf
     (
         hdffileName,
-        "%s.h5",
+        "postProcessing/%s.h5",
         surfaceName.c_str()
     );
 
