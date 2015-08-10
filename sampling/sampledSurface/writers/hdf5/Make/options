@@ -24,6 +24,7 @@ LIB_LIBS = $(PLIBS) \
     -lmeshTools \
     -lsurfMesh \
     -lfileFormats \
+    -lsampling \
     -ltriSurface \
     -llagrangian \
     -lconversion
