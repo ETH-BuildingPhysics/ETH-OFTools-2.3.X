@@ -20,22 +20,20 @@ internalField   uniform (1 0 0);
 
 boundaryField
 {
-//     inlet
-//     {
-//         type                      decayingTurbulenceInflowGeneratorMod;
-//         direction                 1;
-//         writeSourceFields         true;
-//         robustLundTransformation  false;
-//         LField                    uniform 0.003;          // placeholder
-//         refField                  uniform (2 0 0);        // placeholder
-//         RField                    uniform (0.07 -0.025 -0.005 0.035 0.001 0.055);  // placeholder
-//         value                     uniform (2 0 0);        // placeholder
-//     }
-    
+
     inlet
     {
         type            filteredNoiseInflowGenerator;
         value           uniform ( 0 0 0 ); // placeholder
+        //perturb 1e-6; //optional: used for the interpolation. Change this value if there are artifacts on the inlet patch
+        
+        //spatial correlations:
+        //correlationShape exp;
+        //correlationShape doubleExp;
+        correlationShape gaussian;
+        
+        //Virtual grid has the size of the smalles inlet patch cell.
+        //gridFactor 1.0; //optional: Use the gridFactor to scale the virtual grid size.
     }
     outlet
     {
