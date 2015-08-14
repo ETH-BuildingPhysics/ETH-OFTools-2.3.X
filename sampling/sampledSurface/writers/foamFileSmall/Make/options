@@ -12,6 +12,7 @@ LIB_LIBS = \
     -lfiniteVolume \
     -lmeshTools \
     -lsurfMesh \
+    -lsampling \
     -lfileFormats \
     -ltriSurface \
     -llagrangian \
