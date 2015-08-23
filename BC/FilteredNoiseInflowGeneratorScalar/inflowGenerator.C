@@ -1087,7 +1087,7 @@ void Foam::inflowGenerator::spatialCorrScalar()
                 int size_filt=nfK_*NLzField_[I].component(0)+1;
                 int start_filt=get1DIndex(ii, 0, (nfK_*NLzField_[I].component(0)+1));
 
-                SubField<scalar> rnd = SubField<scalar>(virtualRandomField_u_,size_rnd,start_rnd);
+                SubField<scalar> rnd = SubField<scalar>(virtualRandomField_s_,size_rnd,start_rnd);
                 SubField<scalar> filt = SubField<scalar>(filterCoeff_yz_u_Proc[Pstream::myProcNo()][subI],size_filt,start_filt);
 
                 sumTmp_T+=sumProd(rnd,filt);
