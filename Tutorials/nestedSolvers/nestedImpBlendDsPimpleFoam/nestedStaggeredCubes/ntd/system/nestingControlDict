@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      nestingDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// name of the nested case
+nestedName      ntd;
+
+// name of the master case
+masterName    region0;
+
+// list of cases which have this case as master (sub-sub-nesting)
+nestedCases
+(
+    
+);
+
+// number of sub time step for the nested case between two master time step
+subDeltaT       3;
+
+// list of pair of patches which have the same topology.
+//- empty in 95% of the cases...
+patchMap
+(
+    //mst ntd
+//     ground ground
+//     top top
+//     side1 side1
+//     side2 side2
+//     cubes_solid cubes_solid
+);
+
+// list of nested patches which cut the master domain.
+cuttingPatches
+(
+   inlet
+   outlet
+);
+
+// use a blending for the volumic fields contigious to those patches.
+blendedPatches
+(
+     inlet
+     outlet
+);
+
+// perpendicular blending distance (in meters) from blendedPatches[i].
+//- indicates the "depth" of the blending inside the nested domain.
+blendingDist   0.05;
+
+// relaxation time
+DsRelaxationTime       0.01;
+
+// functions objects executed at each ntd timestep
+functions
+{
+    #include "runTimeFunctions/probesCL6"
+}
+
+// ************************************************************************* //

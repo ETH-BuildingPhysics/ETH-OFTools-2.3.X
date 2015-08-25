@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      nestingDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// list of all nested of the run.
+// Even the ones, which have not this case as master
+allNestedCases
+(
+    ntd
+);
+
+// list of cases, which have this case as master
+nestedCases
+(
+    ntd
+);
+
+// functions objects executed at each mst timestep. The function objects used
+// in the following section can be also placed in the controlDct of the mst
+// case
+functions
+{
+    #include "runTimeFunctions/probesCL5"
+    #include "runTimeFunctions/probesCL6"
+}
+
+// ************************************************************************* //

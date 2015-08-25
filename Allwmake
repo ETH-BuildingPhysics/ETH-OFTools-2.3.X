@@ -1,13 +1,17 @@
 #!/bin/sh
 
 sourcesPath=(
-
+    NestedTime
+    nestingDsInterpolator    
+    nestedBlendDsPimpleSolver
+    masterPimpleSolver
 )
 
 BoundaryConditionsPath=(
     FilteredNoiseInflowGenerator
     FilteredNoiseInflowGeneratorScalar
     LEMOSinflowGeneratorMod
+    nestedBlendedVelocity
 )
 
 functionObjectsPath=(
@@ -18,7 +22,7 @@ functionObjectsPath=(
 
 samplingPath=(
     sampledSurface/writers/foamFileSmall
-    sampledSurface/writers/hdf5/
+    sampledSurface/writers/hdf5
 )
 
 solversPath=(
@@ -26,6 +30,7 @@ solversPath=(
 #     pisoScalarSourceFoam
 #     pisoScalarSourceFoam221
     pisoScalarSourceFoam230
+    nestedImpBlendDsPimpleFoam
 )
 
 utilitiesPath=(
@@ -40,10 +45,24 @@ utilitiesPath=(
     SGSValues
     snGradU
     yPlusMeanLES
-    Q2D
 )
 
 workingDir=$(pwd)
+
+# compile the sources
+echo "-------------------"
+echo "compile the sources"
+echo "-------------------"
+cd src
+locdir=$(pwd)
+for i in "${sourcesPath[@]}"
+do
+    cd $i
+    wmake
+    cd $locdir    
+done
+cd $workingDir
+echo ""
 
 # compile the boundary conditions
 echo "-------------------------------"

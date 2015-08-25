@@ -1,0 +1,110 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         backward;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(p)         Gauss linear;
+    grad(U)         Gauss linear;
+}
+
+divSchemes
+{
+    default           none;
+    div(phi,U)        Gauss GammaV 0.5;
+    div(phi,k)        Gauss limitedLinear 1;
+    div(B)            Gauss limitedLinear 1;
+    div((nuEff*dev(T(grad(U))))) Gauss linear;
+    
+    div(phi,Srb1_1)        Gauss limitedLinear01 1;
+    div(phi,Srb1_2)        Gauss limitedLinear01 1;
+    div(phi,Srb1_3)        Gauss limitedLinear01 1;
+    div(phi,Srb1_4)        Gauss limitedLinear01 1;
+    div(phi,Srb1_5)        Gauss limitedLinear01 1;
+    div(phi,Srb1_6)        Gauss limitedLinear01 1;
+    div(phi,Srb1_7)        Gauss limitedLinear01 1;
+    div(phi,Srb1_8)        Gauss limitedLinear01 1;
+    div(phi,Srb1_9)        Gauss limitedLinear01 1;
+    div(phi,Srb1_10)        Gauss limitedLinear01 1;
+    
+    div(phi,Srb2_1)        Gauss limitedLinear01 1;
+    div(phi,Srb2_2)        Gauss limitedLinear01 1;
+    div(phi,Srb2_3)        Gauss limitedLinear01 1;
+    div(phi,Srb2_4)        Gauss limitedLinear01 1;
+    div(phi,Srb2_5)        Gauss limitedLinear01 1;
+    div(phi,Srb2_6)        Gauss limitedLinear01 1;
+    div(phi,Srb2_7)        Gauss limitedLinear01 1;
+    div(phi,Srb2_8)        Gauss limitedLinear01 1;
+    div(phi,Srb2_9)        Gauss limitedLinear01 1;
+    div(phi,Srb2_10)        Gauss limitedLinear01 1;
+}
+
+
+laplacianSchemes
+{
+    default                   none;
+    laplacian(nuEff,U)        Gauss linear corrected;
+    laplacian((1|A(U)),p)     Gauss linear corrected;
+    laplacian(DkEff,k)        Gauss linear corrected;
+    laplacian(rAUf,p)         Gauss linear corrected;
+    
+    laplacian(nuEff,Srb1_1)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_2)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_3)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_4)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_5)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_6)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_7)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_8)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_9)       Gauss linear corrected;
+    laplacian(nuEff,Srb1_10)       Gauss linear corrected;
+    
+    laplacian(nuEff,Srb2_1)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_2)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_3)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_4)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_5)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_6)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_7)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_8)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_9)       Gauss linear corrected;
+    laplacian(nuEff,Srb2_10)       Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p                 ;
+}
+
+
+// ************************************************************************* //

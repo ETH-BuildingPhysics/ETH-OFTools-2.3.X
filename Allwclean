@@ -1,13 +1,17 @@
 #!/bin/sh
 
 sourcesPath=(
-
+    NestedTime
+    nestingDsInterpolator
+    nestedBlendDsPimpleSolver
+    masterPimpleSolver
 )
 
 BoundaryConditionsPath=(
     FilteredNoiseInflowGenerator
     FilteredNoiseInflowGeneratorScalar
     LEMOSinflowGeneratorMod
+    nestedBlendedVelocity
 )
 
 functionObjectsPath=(
@@ -18,7 +22,7 @@ functionObjectsPath=(
 
 samplingPath=(
     sampledSurface/writers/foamFileSmall
-    sampledSurface/writers/hdf5/
+    sampledSurface/writers/hdf5
 )
 
 solversPath=(
@@ -26,6 +30,7 @@ solversPath=(
 #     pisoScalarSourceFoam
 #     pisoScalarSourceFoam221
     pisoScalarSourceFoam230
+    nestedImpBlendDsPimpleFoam
 )
 
 utilitiesPath=(
@@ -40,15 +45,29 @@ utilitiesPath=(
     SGSValues
     snGradU
     yPlusMeanLES
-    Q2D
 )
 
 workingDir=$(pwd)
 
+# compile the sources
+echo "-----------------"
+echo "clean the sources"
+echo "-----------------"
+cd src
+locdir=$(pwd)
+for i in "${sourcesPath[@]}"
+do
+    cd $i
+    wclean all
+    cd $locdir    
+done
+cd $workingDir
+echo ""
+
 # compile the boundary conditions
-echo "-------------------------------"
-echo "compile the boundary conditions"
-echo "-------------------------------"
+echo "----------------------------"
+echo "clea the boundary conditions"
+echo "----------------------------"
 cd BC
 locDir=$(pwd)
 for i in "${BoundaryConditionsPath[@]}"
@@ -61,12 +80,11 @@ cd $workingDir
 echo ""
 
 # compile the function objects
-echo "----------------------------"
-echo "compile the function objects"
-echo "----------------------------"
+echo "--------------------------"
+echo "clean the function objects"
+echo "--------------------------"
 cd FunctionObjects
 locDir=$(pwd)
-echo $locDir
 for i in "${functionObjectsPath[@]}"
 do 
     cd $i
@@ -78,9 +96,9 @@ echo ""
 
 
 # compile the sampling libraries
-echo "------------------------------"
-echo "compile the sampling libraries"
-echo "------------------------------"
+echo "----------------------------"
+echo "clean the sampling libraries"
+echo "----------------------------"
 cd sampling
 locDir=$(pwd)
 for i in "${samplingPath[@]}"
@@ -94,9 +112,9 @@ echo ""
 
 
 # compile the solvers
-echo "-------------------"
-echo "compile the solvers"
-echo "-------------------"
+echo "-----------------"
+echo "clean the solvers"
+echo "-----------------"
 cd Solvers
 locDir=$(pwd)
 for i in "${solversPath[@]}"
@@ -110,9 +128,9 @@ echo ""
 
 
 # compile the utilities
-echo "---------------------"
-echo "compile the utilities"
-echo "---------------------"
+echo "-------------------"
+echo "clean the utilities"
+echo "-------------------"
 cd Utilities
 locDir=$(pwd)
 for i in "${utilitiesPath[@]}"
