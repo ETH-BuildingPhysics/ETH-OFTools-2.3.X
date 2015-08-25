@@ -71,9 +71,9 @@ addon can be installed separately by executing wmake in its folder.
 * **scalarCovariance**  
   To compute the scalar covariance, e.g the turbulent temperatur flux <u'T'> is written to *UPrimeTPrimeMean*, calculated by UTMean - (UMean * TMean). Important: the product field UT must be sampled and averaged!
 * **scalarFluxes**  
-  Used in combination with the ** solver. Not needed with proper runtime averaging and the *scalarCovariance* utility
+  Used in combination with the *pisoScalarSourceFoam230* solver. Not needed with proper runtime averaging and the *scalarCovariance* utility
 * **SGSValues**  
-  For LES. Saves the production of subgrid TKE in a field *kSgsProd*. Computed using 2.0*nuSgs*magSqr(symm(gradU)));
+  For LES. Saves the production of subgrid TKE in a field *kSgsProd*. Computed using 2.0 * nuSgs * magSqr(symm(gradU)));
 * **snGradU**  
 * **TKEProd2D**  
 * **yPlusMeanLES**      
