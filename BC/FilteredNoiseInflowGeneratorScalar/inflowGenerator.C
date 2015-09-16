@@ -1254,6 +1254,7 @@ void Foam::inflowGenerator::updateCoeffs()
         //updtaing the scalar path
         fvPatchField<scalar>& sField = const_cast<fvPatchField<scalar>&>(patch().lookupPatchField<volScalarField, scalar>(scalarName_));
 
+        Info << "Updating turbulent scalar field: " << scalarName_ << endl;
         forAll(sField, celli)
         {
             sField[celli] = sMean[celli] + sFluctFinal[celli];
