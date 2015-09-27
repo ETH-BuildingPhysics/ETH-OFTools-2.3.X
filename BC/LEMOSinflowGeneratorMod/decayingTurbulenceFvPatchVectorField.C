@@ -167,9 +167,11 @@ Foam::decayingTurbulenceFvPatchVectorField::decayingTurbulenceFvPatchVectorField
     forAll(RField_,i)
     {
         if (RField_[i].component(symmTensor::XX)<=0.0)
+        {
             Info << "Found a negative or 0 Re Stress in XX" << endl;
             bError=true;
             Lund_[i]=pTraits<tensor>::I;
+        }
     }
     if (!bRobustLund and !bError)
     {
