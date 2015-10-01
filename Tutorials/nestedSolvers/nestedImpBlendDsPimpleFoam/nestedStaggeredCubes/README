@@ -1,0 +1,29 @@
+Tutorials
+=========
+
+nestedStaggeredCubes
+
+Example of one-way, downscale, nested simulation. nestedImpBlendDsPimpleFoam is 
+used as solver. The nesting is of type LES-within-LES. This 
+
+A nested case is composed of two cases: a master case (mst) and a nested
+case (ntd). Each case is a standard OpenFOAM case. Each case has a extra file
+in the folder system: nestingControlDict. It holds all the informations
+needed to achived the nesting.
+
+    
+Run the case:
+    Simply run the script 'runAll.sh' in mst. As it is an LES, the run is long.
+    
+Post-processing with paravirw 4.3.1 (or later):
+    1. Open paraview 4.3.1 (or later) in the mst folder.
+    2. Open the case nestedCase.foam located in the folder mst. In the left 
+       panel, under "Mesh Regions", mark all the entries (internalMesh, inlet, ... , 
+       ntd/internalMesh, ntd/inlet). If you don't have the entries "ntd/.." run
+       the tool foamMakeNestedSymLink.py
+    3. Extract the block mst with "Filters/Alphabetical/Extract Block"
+    4. Extract the block ntd with "Filters/Alphabetical/Extract Block"
+    5. Do the processing for each case of the nesting under the relevant extracted
+       block.
+
+

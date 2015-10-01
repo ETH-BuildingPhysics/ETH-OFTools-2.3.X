@@ -1,0 +1,87 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         backward;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(p)         Gauss linear;
+    grad(U)         Gauss linear;
+}
+
+divSchemes
+{
+    default           none;
+    div(phi,U)        Gauss GammaV 0.5;
+    div(phi,k)        Gauss limitedLinear 1;
+    div(phi,T)        Gauss limitedLinear 1;
+    div((nuEff*dev(T(grad(U))))) Gauss linear;
+    
+    div(phi,Sa)        Gauss limitedLinear01 1;
+    div(phi,Sb)        Gauss limitedLinear01 1;
+    div(phi,Sc)        Gauss limitedLinear01 1;
+    div(phi,Sla)       Gauss limitedLinear01 1;
+    div(phi,Slb)       Gauss limitedLinear01 1;
+    div(phi,Slc)       Gauss limitedLinear01 1;
+    
+    div(U)          Gauss linear;
+    div(phi)        Gauss linear;
+}
+
+
+laplacianSchemes
+{
+    default         none;
+    laplacian(rAUf,p)       Gauss linear corrected;
+    laplacian(rAUf,p_rgh)       Gauss linear corrected;
+    laplacian(nuEff,U)          Gauss linear corrected;
+    laplacian((1|A(U)),p_rgh)   Gauss linear corrected;
+    laplacian((1|A(U)),p)   Gauss linear corrected;
+    laplacian(DkEff,k)          Gauss linear corrected;
+    laplacian(alphaEff,T)       Gauss linear corrected;
+    
+    laplacian(nuEff,Sa)         Gauss linear corrected;
+    laplacian(nuEff,Sb)         Gauss linear corrected;
+    laplacian(nuEff,Sc)         Gauss linear corrected;
+    laplacian(nuEff,Sla)        Gauss linear corrected;
+    laplacian(nuEff,Slb)        Gauss linear corrected;
+    laplacian(nuEff,Slc)        Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p_rgh             ;
+    p                 ;
+}
+
+
+// ************************************************************************* //

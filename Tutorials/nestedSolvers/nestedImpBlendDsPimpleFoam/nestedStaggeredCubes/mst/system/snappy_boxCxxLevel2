@@ -1,0 +1,101 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+boxC11Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (-0.01875 -0.01875 -0.01875);
+    max (0.06875 0.06875 0.06875);
+}
+boxC12Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.18125 -0.01875 -0.01875);
+    max (0.26875 0.06875 0.06875);
+}
+boxC13Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.38125 -0.01875 -0.01875);
+    max (0.46875 0.06875 0.06875);
+}
+boxC21Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.08125 -0.06875 -0.01875);
+    max (0.16875 0.01875 0.06875);
+}
+boxC22Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.28125 -0.06875 -0.01875);
+    max (0.36875 0.01875 0.06875);
+}
+boxC23Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.48125 -0.06875 -0.01875);
+    max (0.56875 0.01875 0.06875);
+}
+boxC31Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (-0.01875 -0.11875 -0.01875);
+    max (0.06875 -0.03125 0.06875);
+}
+boxC32Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.18125 -0.11875 -0.01875);
+    max (0.26875 -0.03125 0.06875);
+}
+boxC33Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.38125 -0.11875 -0.01875);
+    max (0.46875 -0.03125 0.06875);
+}
+boxC41Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.08125 -0.16875 -0.01875);
+    max (0.16875 -0.08125 0.06875);
+}
+boxC42Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.28125 -0.16875 -0.01875);
+    max (0.36875 -0.08125 0.06875);
+}
+boxC43Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.48125 -0.16875 -0.01875);
+    max (0.56875 -0.08125 0.06875);
+}
+boxC51Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (-0.01875 -0.21875 -0.01875);
+    max (0.06875 -0.13125 0.06875);
+}
+boxC52Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.18125 -0.21875 -0.01875);
+    max (0.26875 -0.13125 0.06875);
+}
+boxC53Level02    //refinement up to 16 cells/h
+{
+    type searchableBox;
+    min (0.38125 -0.21875 -0.01875);
+    max (0.46875 -0.13125 0.06875);
+}
+// ************************************************************************* //

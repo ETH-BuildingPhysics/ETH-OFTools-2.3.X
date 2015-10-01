@@ -1,0 +1,59 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+
+// ************************************************************************* //
+Sla  //scalar realease at Sla
+{
+    type                 scalarTransport;
+    functionObjectLibs   ("libutilityFunctionObjects.so");
+    enabled              true;
+    outputControl        outputTime;
+    region               region0;
+    resetOnStartUp       false;
+    autoSchemes          false;
+    fvOptions
+    {
+        scalarSource_Sla
+        {
+            type            scalarExplicitSetValue;
+            active          true;
+            timeStart       0;
+            duration        1000;
+            selectionMode   cellSet;
+            cellSet         scalarRelease_Sla;
+
+            scalarExplicitSetValueCoeffs
+            {
+                injectionRate
+                {
+                    Sla              1;
+                }
+            }
+        }
+    }
+}
+
+// function object used to create the field U*S (US) in the registery, 
+// with S any volScalarField. US is then averaged with the fieldAverage 
+// function object. during the post processing, one can get the field
+// UPrimeSPrimeMean with the utility scalarCovariance, which use the relation
+// <u's'> = <US> - <U><S>.
+scalarVelocityProduct
+{
+    type                 scalarVelocityProduct;
+    functionObjectLibs   ("libscalarVelocityProduct.so");
+    enabled              true;
+    writeFields          false;
+    outputControl        outputTime;
+    scalarFields
+    (
+        Sla
+    );
+}

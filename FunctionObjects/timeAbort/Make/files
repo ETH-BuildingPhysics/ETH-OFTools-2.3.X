@@ -1,0 +1,4 @@
+timeAbort/timeAbort.C
+timeAbort/timeAbortFunctionObject.C
+
+LIB = $(FOAM_USER_LIBBIN)/libtimeAbort

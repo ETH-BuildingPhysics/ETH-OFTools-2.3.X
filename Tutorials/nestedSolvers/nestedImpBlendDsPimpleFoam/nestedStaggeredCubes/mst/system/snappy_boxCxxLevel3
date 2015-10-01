@@ -1,0 +1,101 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+boxC11Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;                                                                                          
+    min (-0.0125 -0.0125 -0.0125);                                                                               
+    max (0.0625 0.0625 0.0625);                                                                                  
+}                                                                                                                
+boxC12Level03    //refinement up to 32 cells/h                                                                   
+{                                                                                                                
+    type searchableBox;                                                                                          
+    min (0.1875 -0.0125 -0.0125);                                                                                
+    max (0.2625 0.0625 0.0625);                                                                                  
+}                                                                                                                
+boxC13Level03    //refinement up to 32 cells/h                                                                   
+{                                                                                                                
+    type searchableBox;                                                                                          
+    min (0.3875 -0.0125 -0.0125);                                                                                
+    max (0.4625 0.0625 0.0625);
+}
+boxC21Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.0875 -0.0625 -0.0125);
+    max (0.1625 0.0125 0.0625);
+}
+boxC22Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.2875 -0.0625 -0.0125);
+    max (0.3625 0.0125 0.0625);
+}
+boxC23Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.4875 -0.0625 -0.0125);
+    max (0.5625 0.0125 0.0625);
+}
+boxC31Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (-0.0125 -0.1125 -0.0125);
+    max (0.0625 -0.0375 0.0625);
+}
+boxC32Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.1875 -0.1125 -0.0125);
+    max (0.2625 -0.0375 0.0625);
+}
+boxC33Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.3875 -0.1125 -0.0125);
+    max (0.4625 -0.0375 0.0625);
+}
+boxC41Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.0875 -0.1625 -0.0125);
+    max (0.1625 -0.0875 0.0625);
+}
+boxC42Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.2875 -0.1625 -0.0125);
+    max (0.3625 -0.0875 0.0625);
+}
+boxC43Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.4875 -0.1625 -0.0125);
+    max (0.5625 -0.0875 0.0625);
+}
+boxC51Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (-0.0125 -0.2125 -0.0125);
+    max (0.0625 -0.1375 0.0625);
+}
+boxC52Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.1875 -0.2125 -0.0125);
+    max (0.2625 -0.1375 0.0625);
+}
+boxC53Level03    //refinement up to 32 cells/h
+{
+    type searchableBox;
+    min (0.3875 -0.2125 -0.0125);
+    max (0.4625 -0.1375 0.0625);
+}
+// ************************************************************************* //
