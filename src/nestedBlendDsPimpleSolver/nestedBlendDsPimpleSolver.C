@@ -303,13 +303,13 @@ void nestedBlendDsPimpleSolver::interpolateMstFields()
         interpolator_.DSinterpolatorObj().mapSrcToTgt
         (
             meshMst_.lookupObject<volVectorField>("U").oldTime(),
-            eqOp<vector>(),
+            plusEqOp<vector>(),
             U0MstOnNtd_
         );
         interpolator_.DSinterpolatorObj().mapSrcToTgt
         (
             meshMst_.lookupObject<volScalarField>("p").oldTime(),
-            eqOp<scalar>(),
+            plusEqOp<scalar>(),
             p0MstOnNtd_
         );
     }
@@ -322,14 +322,14 @@ void nestedBlendDsPimpleSolver::interpolateMstFields()
     interpolator_.DSinterpolatorObj().mapSrcToTgt
     (
         meshMst_.lookupObject<volVectorField>("U"),
-        eqOp<vector>(),
+        plusEqOp<vector>(),
         UMstOnNtd_
     );
 
     interpolator_.DSinterpolatorObj().mapSrcToTgt
     (
         meshMst_.lookupObject<volScalarField>("p"),
-        eqOp<scalar>(),
+        plusEqOp<scalar>(),
         pMstOnNtd_
     );
 }
