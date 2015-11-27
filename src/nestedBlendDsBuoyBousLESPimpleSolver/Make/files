@@ -1,0 +1,4 @@
+nestedBlendDsBuoyBousLESPimpleSolver.C
+
+LIB = $(FOAM_USER_LIBBIN)/libnestedBlendDsBuoyBousLESPimpleSolver
+
