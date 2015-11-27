@@ -5,12 +5,15 @@ sourcesPath=(
     nestingDsInterpolator    
     nestedBlendDsPimpleSolver
     masterPimpleSolver
+    nestedBlendDsBuoyBousLESPimpleSolver
+    masterBuoyBousLESPimpleSolver
 )
 
 BoundaryConditionsPath=(
     FilteredNoiseInflowGenerator
     FilteredNoiseInflowGeneratorScalar
     LEMOSinflowGeneratorMod
+    nestedBlendedTemperature
     nestedBlendedVelocity
 )
 
@@ -31,12 +34,14 @@ solversPath=(
 #     pisoScalarSourceFoam221
     pisoScalarSourceFoam230
     nestedImpBlendDsPimpleFoam
+    nestedImpBlendDsBuoyBousLESPimpleFoam
 )
 
 utilitiesPath=(
     cellVolumes
     gradU
     LESdelta
+    patchDistance
     postAvg
     Q2D
     resLES
@@ -44,7 +49,8 @@ utilitiesPath=(
     scalarFluxes
     SGSValues
     snGradU
-    yPlusMeanLES
+    wallHeatFluxIncompressible
+    yPlusMeanLES    
 )
 
 workingDir=$(pwd)
