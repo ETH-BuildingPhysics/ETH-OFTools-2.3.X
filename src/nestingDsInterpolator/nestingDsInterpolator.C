@@ -60,6 +60,10 @@ nestingDsInterpolator::nestingDsInterpolator
     patchMap_(nestingControlDict_.lookup("patchMap")),
     cuttingPatches_(nestingControlDict_.lookup("cuttingPatches"))
 {
+    // change the mapMethod_ according input from nestingControlDict_
+    word mapMethodInput(nestingControlDict_.lookupOrDefault<word>("mapMethod","cellVolumeWeight"));
+    mapMethod_ = meshToMesh::interpolationMethodNames_[mapMethodInput];
+
 //    lookup("patchMap") >> patchMap_;
 //    lookup("cuttingPatches") >>  cuttingPatches_;
 

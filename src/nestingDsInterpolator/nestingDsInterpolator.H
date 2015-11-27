@@ -26,8 +26,9 @@ Class
 
 Description
     Class to handle the interpolation process of nested solvers with
-    blending zones.
-
+    blending zones. This class derives from IOdictionary, therefore it is
+    listed in the registery with the name of the nestingControlDict.
+    
 SourceFiles
     nestingDsInterpolator.C
 
@@ -66,7 +67,7 @@ class nestingDsInterpolator
     const fvMesh& meshNtd_;
 
     //- map method for the mest to mesh interpolation
-    const meshToMesh::interpolationMethod mapMethod_;
+    meshToMesh::interpolationMethod mapMethod_;
 
     //- patch map: pair of patches (master patch / nested patch)
     //  with the same topology.
