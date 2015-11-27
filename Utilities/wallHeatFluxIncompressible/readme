@@ -1,0 +1,17 @@
+In this version it is required to specify values for the density, heat capacity,
+and Prandtl numbers in the transportProperties dictionary like
+
+
+
+// Laminar Prandtl number
+Pr              Pr [0 0 0 0 0 0 0] 0.9;
+
+// Turbulent Prandtl number
+Prt             Prt [0 0 0 0 0 0 0] 0.85;
+
+// rho value needed for wallHeatFluxIncompressible
+rho             rho [1 -3 0 0 0 0 0] 1.2;
+
+// Cp value needed for wallHeatFluxIncompressible
+Cp             Cp [0 2 -2 -1 0 0 0] 1005.0;
+
