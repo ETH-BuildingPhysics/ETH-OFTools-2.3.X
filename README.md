@@ -10,6 +10,9 @@ Chair of Building Physics (ETH Zurich) addons for OpenFOAM-2.3.x.
 * Marc Immer
 * Marcel Vonlanthen
 
+## How to cite:
+If you use the Filtered Noise Inflow Generator BC (FilteredNoiseInflowGenerator or FilteredNoiseInflowGeneratorScalar), please cite the following:
+Immer, Marc Christian. Time-resolved measurement and simulation of local scale turbulent urban flow. ETH-Zürich (2016). http://dx.doi.org/10.3929/ethz-a-010657618
 
 ## Installation:
 Exectute the following lines in a terminal to install all the addons. Each
@@ -25,8 +28,10 @@ addon can be installed separately by executing wmake in its folder.
 ### Boundary Conditions
 * **FilteredNoiseInflowGenerator**     
    Variant of Kleins Filtered Noise turbulent inflow boundary condition
+   Documentation is available in the Doctoral Thesis: http://e-collection.library.ethz.ch/view/eth:49140
 * **FilteredNoiseInflowGeneratorScalar**  
   Variant *FilteredNoiseInflowGenerator* including turbulent scalar generation
+  http://dx.doi.org/10.3929/ethz-a-010657618
 * **LEMOSinflowGeneratorMod**     
    Modification of https://github.com/LEMOS-Rostock/LEMOS-2.3.x/tree/master/libLEMOS-2.3.x/boundaryConditions/inflowGenerator to read input files similar to the OpenFOAM BC *TimeVaryingMappedFixedValue*
 * **nestedBlendedVelocity**   
