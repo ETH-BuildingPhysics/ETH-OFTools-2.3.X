@@ -1,0 +1,4 @@
+inflowGenerator.C
+
+LIB = $(FOAM_USER_LIBBIN)/libfilteredNoiseInflowGeneratorSelective
+
