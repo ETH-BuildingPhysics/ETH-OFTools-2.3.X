@@ -2,6 +2,11 @@ This variant of the filtered noise inflow generator uses the proposed method of 
 
 Selective filtering only filters the virtual grid coordinates which are nearest to actual mesh faces. This can heavily improve performance for grids that have several refinements in vertical direction (z-axis). 
 
+This version fixes a bug that crashes the simulation sometimes when the number of indices on the virtual grid can't be split equally to all processors.
+
+Furthermore the indices are now distributed to the processors according to their computational load which is depending on the corresponding integral length scales. This only works if the integral length scales are vertically increasing (in z-direction).
+
+
 In order to use this inlet generator with OpenFOAM:
 
 0. Compile this boundary condition with the command wmake.
