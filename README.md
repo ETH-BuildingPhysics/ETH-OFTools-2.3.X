@@ -2,8 +2,19 @@
 
 Chair of Building Physics (ETH Zurich) addons for OpenFOAM-2.3.x.
 
+## Performance Update (this forked repository)
 
-## Version:
+## Author:
+* Lukas Lebovitz
+
+## Updates:
+
+* Added FilteredNoiseInflowGgeneratorSelective to the "BC/" directory. 
+* This version of the inflow generator uses the concept of selective filtering (more information in the master thesis of Lukas Lebovitz, 2017), 
+* has a properly parallelized random field generation 
+* and some bug fixes.
+
+## Original Version:
 
 
 ## Authors:
