@@ -8,7 +8,7 @@ Chair of Building Physics (ETH Zurich) addons for OpenFOAM-2.3.x.
 * Marc Immer
 * Marcel Vonlanthen
 
-# Contributors:
+## Contributors:
 * Lukas Lebovitz
 
 ## How to cite:
