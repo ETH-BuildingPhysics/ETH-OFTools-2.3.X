@@ -6,39 +6,28 @@
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
-    This file is part of OpenFOAM.
-
-    OpenFOAM is free software: you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
+  This file is part of OpenFOAM.
+  OpenFOAM is free software: you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+  for more details.
+  You should have received a copy of the GNU General Public License
+  along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 Class
-    Foam::inflowGenerator
-
+  Foam::inflowGenerator
 Group
-    grpInletBoundaryConditions
-
+  grpInletBoundaryConditions
 Description
-
-
 Note
-    correlationShape (string) can be exp or doubleExp or gaussian
-
+  correlationShape (string) can be exp or doubleExp or gaussian
 SeeAlso
-    Foam::fixedValueFvPatchField
-
+  Foam::fixedValueFvPatchField
 SourceFiles
-    inflowGenerator.C
-
+  inflowGenerator.C
 \*---------------------------------------------------------------------------*/
 
 #ifndef inflowGenerator_H
@@ -62,214 +51,228 @@ namespace Foam
 
 class inflowGenerator
 :
-    public fixedValueFvPatchVectorField
+  public fixedValueFvPatchVectorField
 {
-    // Private data
+  // Private data
 
-    scalar LY_;
-    scalar LZ_;
-    scalar dy_;
-    scalar dz_;
-    label NY_;
-    label NZ_;
-    scalar gridFactor_;
+  scalar LY_;
+  scalar LZ_;
+  scalar dy_;
+  scalar dz_;
+  label NY_;
+  label NZ_;
+  scalar gridFactor_;
 
-    //- Current time index (used for updating)
-    label curTimeIndex_;
+  //- Current time index (used for updating)
+  label curTimeIndex_;
 
-	// Field declaration and initialization
-	vectorField UMean;
-  
-    Field<symmTensor> ReStress;
-    vectorField uFluctFiltered;     // intermediate spatially correlated (filtered) fluctuation on patch mesh
-    vectorField uFluctTemporal_old; // old temporal correlated fluctuation
-    vectorField uFluctTemporal;     // new temporal correlated fluctuation
-    vectorField uFluctFinal;        // final (scaled) fluctuation
+  // Field declaration and initialization
+  vectorField UMean;
 
-	vectorField cells;
-	scalarField ycentre;
-	scalarField zcentre;
-	
-	pointField virualGridPoints_;
+  Field<symmTensor> ReStress;
+  vectorField uFluctFiltered;     // intermediate spatially correlated (filtered) fluctuation on patch mesh
+  vectorField uFluctTemporal_old; // old temporal correlated fluctuation
+  vectorField uFluctTemporal;     // new temporal correlated fluctuation
+  vectorField uFluctFinal;        // final (scaled) fluctuation
 
-	scalarField virtualRandomField_u_;
-	scalarField virtualRandomField_v_;
-	scalarField virtualRandomField_w_;
-	
-    vectorField virtualFilteredField_;
+  vectorField cells;
+  scalarField ycentre;
+  scalarField zcentre;
 
-    List<scalarListList> filterCoeff_yz_u_Proc;
-    List<scalarListList> filterCoeff_yz_v_Proc;
-    List<scalarListList> filterCoeff_yz_w_Proc;
+  pointField virualGridPoints_;
 
-    //Geometry of virtual Grid
-	vector origin_;
-    scalar hight_;
-    scalar width_;
+  scalarField virtualRandomField_u_;
+  scalarField virtualRandomField_v_;
+  scalarField virtualRandomField_w_;
 
-    //mapper from virtual grid to patch
-    autoPtr<pointToPointPlanarInterpolation> mapperVP_Ptr_;
-    //mapper from inlet data to virtual grid
-    autoPtr<pointToPointPlanarInterpolation> mapperIV_Ptr_;
-    //mapper from inlet data to patch
-    autoPtr<pointToPointPlanarInterpolation> mapperIP_Ptr_;
-	scalar perturb_;
+  vectorField virtualFilteredField_;
 
-    Field<tensor> Lund_;
-    Foam::Random ranGen;
+  List<scalarListList> filterCoeff_yz_u_Proc;
+  List<scalarListList> filterCoeff_yz_v_Proc;
+  List<scalarListList> filterCoeff_yz_w_Proc;
 
-    vectorField LxField_;
-    Field<labelVector> NLxField_;
+  //Geometry of virtual Grid
+  vector origin_;
+  scalar hight_;
+  scalar width_;
 
-    vectorField LyField_;
-    vectorField LzField_;
-    Field<labelVector> NLyField_;
-    Field<labelVector> NLzField_;
+  //Measure Elapsed Time
+  scalar eTime_;
+  scalar eTimeSub_;
+  scalar timeBu_;
+  scalar eTimetot_;
 
+  //mapper from virtual grid to patch
+  autoPtr<pointToPointPlanarInterpolation> mapperVP_Ptr_;
+  //mapper from inlet data to virtual grid
+  autoPtr<pointToPointPlanarInterpolation> mapperIV_Ptr_;
+  //mapper from inlet data to patch
+  autoPtr<pointToPointPlanarInterpolation> mapperIP_Ptr_;
+  scalar perturb_;
 
-    label NLyMax_u;
-    label NLyMax_v;
-    label NLyMax_w;
+  Field<tensor> Lund_;
+  Foam::Random ranGen;
 
-    label NLzMax_u;
-    label NLzMax_v;
-    label NLzMax_w;
+  vectorField LxField_;
+  Field<labelVector> NLxField_;
 
-    //for parallel processing
-    label indicesPerProc_;
-    labelList yindices_;
-    labelList zindices_;
-
-    //filter kernel factor (multiple of length scale)
-    label nfK_;
-    label zOffsetRnd_u_;
-    label yOffsetRnd_u_;
-    label zOffsetRnd_v_;
-    label yOffsetRnd_v_;
-    label zOffsetRnd_w_;
-    label yOffsetRnd_w_;
-    
-
-    bool cleanRestart_;
-    bool isInitialized_;
-    bool isRestart_;
-
-    word correlationShape_;
-	
-   public:
-
-    //- Runtime type information
-    TypeName("filteredNoiseInflowGenerator");
+  vectorField LyField_;
+  vectorField LzField_;
+  Field<labelVector> NLyField_;
+  Field<labelVector> NLzField_;
 
 
-   // Constructors
+  label NLyMax_u;
+  label NLyMax_v;
+  label NLyMax_w;
 
-    //- Construct from patch and internal field
-    inflowGenerator
+  label NLzMax_u;
+  label NLzMax_v;
+  label NLzMax_w;
+
+  //for parallel processing
+  label indicesPerProc_;
+  label rest_;
+  labelList yindices_;
+  labelList zindices_;
+
+  //filter kernel factor (multiple of length scale)
+  label nfK_;
+  label zOffsetRnd_u_;
+  label yOffsetRnd_u_;
+  label zOffsetRnd_v_;
+  label yOffsetRnd_v_;
+  label zOffsetRnd_w_;
+  label yOffsetRnd_w_;
+
+
+  bool cleanRestart_;
+  bool isInitialized_;
+  bool isRestart_;
+
+
+  word correlationShape_;
+
+  public:
+
+  //- Runtime type information
+  TypeName("filteredNoiseInflowGenerator");
+
+
+  // Constructors
+
+  //- Construct from patch and internal field
+  inflowGenerator
+  (
+    const fvPatch&,
+    const DimensionedField<vector, volMesh>&
+  );
+
+  //- Construct from patch, internal field and dictionary
+  inflowGenerator
+  (
+    const fvPatch&,
+    const DimensionedField<vector, volMesh>&,
+    const dictionary&
+  );
+
+  //- Construct by mapping given
+  //  inflowGenerator
+  //  onto a new patch
+  inflowGenerator
+  (
+    const inflowGenerator&,
+    const fvPatch&,
+    const DimensionedField<vector, volMesh>&,
+    const fvPatchFieldMapper&
+  );
+
+  //- Construct as copy
+  inflowGenerator
+  (
+    const inflowGenerator&
+  );
+
+  //- Construct and return a clone
+  virtual tmp<fvPatchVectorField> clone() const
+  {
+    return tmp<fvPatchVectorField>
     (
-        const fvPatch&,
-        const DimensionedField<vector, volMesh>&
+      new inflowGenerator(*this)
     );
+  }
 
-    //- Construct from patch, internal field and dictionary
-    inflowGenerator
+  //- Construct as copy setting internal field reference
+  inflowGenerator
+  (
+    const inflowGenerator&,
+    const DimensionedField<vector, volMesh>&
+  );
+
+  //- Construct and return a clone setting internal field reference
+  virtual tmp<fvPatchVectorField> clone
+  (
+    const DimensionedField<vector, volMesh>& iF
+  ) const
+  {
+    return tmp<fvPatchVectorField>
     (
-        const fvPatch&,
-        const DimensionedField<vector, volMesh>&,
-        const dictionary&
+      new inflowGenerator(*this, iF)
     );
-
-    //- Construct by mapping given
-    //  inflowGenerator
-    //  onto a new patch
-    inflowGenerator
-    (
-        const inflowGenerator&,
-        const fvPatch&,
-        const DimensionedField<vector, volMesh>&,
-        const fvPatchFieldMapper&
-    );
-
-    //- Construct as copy
-    inflowGenerator
-    (
-        const inflowGenerator&
-    );
-
-    //- Construct and return a clone
-    virtual tmp<fvPatchVectorField> clone() const
-    {
-        return tmp<fvPatchVectorField>
-        (
-            new inflowGenerator(*this)
-        );
-    }
-
-    //- Construct as copy setting internal field reference
-    inflowGenerator
-    (
-        const inflowGenerator&,
-        const DimensionedField<vector, volMesh>&
-    );
-
-    //- Construct and return a clone setting internal field reference
-    virtual tmp<fvPatchVectorField> clone
-    (
-        const DimensionedField<vector, volMesh>& iF
-    ) const
-    {
-        return tmp<fvPatchVectorField>
-        (
-            new inflowGenerator(*this, iF)
-        );
-    }
+  }
 
 
 
-    // Member functions
-	
-	//read experimental data
-	void initData();
-	
-	//prepare for time loop
-	void initialize();
+  // Member functions
 
-    void autoSizeGrid();
-    //generate a normal distributed random number
-    virtual scalar getRandomNumber();
+  //read experimental data
+  void initData();
 
-    //returns index of a 2D array in list format
-    int get1DIndex(int x, int y, int yMax);
-    void get2DIndex(int I, int& x, int& y, int yMax);
+  //prepare for time loop
+  void initialize();
 
-    // new get filter coeff
-    void getFilterCoeff_New(scalarList& b_x, label NLX_x);
-    void get2DFilterCoeff_New(scalarList& filter,label NLY_x, label NLZ_x);
+  void autoSizeGrid();
+  //generate a normal distributed random number
+  virtual scalar getRandomNumber();
 
-	//generate normal distributed random field
-    void getRandomField();
+  //returns index of a 2D array in list format
+  int get1DIndex(int x, int y, int yMax);
+  void get2DIndex(int I, int& x, int& y, int yMax);
 
-    void spatialCorr();
+  // round to 6 decimals
+  virtual scalar roundSix(scalar numberN);
 
-    //get temporal correlation
-    void temporalCorr();
+  // new get filter coeff
+  void getFilterCoeff_New(scalarList& b_x, label NLX_x);
+  void get2DFilterCoeff_New(scalarList& filter,label NLY_x, label NLZ_x);
 
-	//interpolating velocity fluctuation from virtual grid on OpenFOAM grid
-    //void interpolFluct_bilinear();
-    void interpolFluct();
+  //generate normal distributed random field
+  void getRandomField();
 
-	//getting scaled velocity fluctuation with method of LUND (1998)
-	void scaleFluct();
+  void spatialCorr();
 
-    virtual void autoMap(const fvPatchFieldMapper&);
+  //get temporal correlation
+  void temporalCorr();
 
-    virtual void rmap(const fvPatchField<vector>&, const labelList&);
+  //interpolating velocity fluctuation from virtual grid on OpenFOAM grid
+  //void interpolFluct_bilinear();
+  void interpolFluct();
 
-    //- Update the coefficients associated with the patch field
-    virtual void updateCoeffs();
+  //getting scaled velocity fluctuation with method of LUND (1998)
+  void scaleFluct();
 
-    //- Write
-    virtual void write(Ostream&) const;
+  //Conduct mass Flow correction
+  void massFlowCorr();
+
+  virtual void autoMap(const fvPatchFieldMapper&);
+
+  virtual void rmap(const fvPatchField<vector>&, const labelList&);
+
+  //- Update the coefficients associated with the patch field
+  virtual void updateCoeffs();
+
+  //- Write
+  virtual void write(Ostream&) const;
 };
 
 
