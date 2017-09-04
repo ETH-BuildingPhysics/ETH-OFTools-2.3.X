@@ -2,13 +2,14 @@
 
 Chair of Building Physics (ETH Zurich) addons for OpenFOAM-2.3.x.
 
-
 ## Version:
-
 
 ## Authors:
 * Marc Immer
 * Marcel Vonlanthen
+
+## Contributors:
+* Lukas Lebovitz
 
 ## How to cite:
 If you use the Filtered Noise Inflow Generator BC (FilteredNoiseInflowGenerator or FilteredNoiseInflowGeneratorScalar), please cite the following:
